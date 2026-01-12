@@ -8,88 +8,115 @@ require_once __DIR__ . '/../includes/header.php';
 
 $items = getCartItems($pdo);
 $total = getCartTotal($items);
+
+// actions panier
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (isset($_POST['update'])) {
+    foreach (($_POST['qty'] ?? []) as $id => $qty) {
+      updateCartQty((int)$id, (int)$qty);
+    }
+  }
+
+  if (isset($_POST['remove'])) {
+    $id = (int)($_POST['remove'] ?? 0);
+    if ($id > 0) removeFromCart($id);
+  }
+
+  if (isset($_POST['clear'])) {
+    clearCart();
+  }
+
+  header("Location: cart.php");
+  exit;
+}
+
+// refresh
+$items = getCartItems($pdo);
+$total = getCartTotal($items);
 ?>
 
 <header class="container hero">
   <h1>Votre panier 🛒</h1>
-  <p>Modifiez les quantités, supprimez un article, puis passez commande.</p>
+  <p>Vérifie tes produits avant de commander.</p>
 </header>
 
-<main class="container cart">
+<main class="container">
 
-<?php if (empty($items)): ?>
-  <div class="panel">
-    <h2>Panier vide</h2>
-    <p>Retour au catalogue pour ajouter des produits.</p>
-    <a class="btn" href="/-e-commerce-dynamique/public/items.php">Voir le catalogue →</a>
-  </div>
-<?php else: ?>
+  <?php if (empty($items)): ?>
+    <div class="panel">
+      <h2>Panier vide</h2>
+      <p>Ajoute des produits depuis le catalogue.</p>
+      <a class="btn" href="/-e-commerce-dynamique/public/items.php">Retour catalogue →</a>
+    </div>
+  <?php else: ?>
 
-  <div class="panel">
-    <div class="cart-table">
-      <div class="cart-head">
-        <div>Produit</div>
-        <div>Prix</div>
-        <div>Quantité</div>
-        <div>Sous-total</div>
-        <div></div>
+    <form method="post" class="panel" style="padding:16px;">
+      <div style="overflow:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:720px;">
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid rgba(255,255,255,.12);">
+              <th style="padding:12px 8px;">Produit</th>
+              <th style="padding:12px 8px;">Prix</th>
+              <th style="padding:12px 8px;">Quantité</th>
+              <th style="padding:12px 8px;">Total</th>
+              <th style="padding:12px 8px;"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <?php foreach ($items as $it): ?>
+              <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
+                <td style="padding:12px 8px;">
+                  <strong><?= htmlspecialchars($it['name']) ?></strong>
+                </td>
+                <td style="padding:12px 8px;">
+                  <?= number_format((float)$it['price'], 2) ?> €
+                </td>
+                <td style="padding:12px 8px;">
+                  <input type="number" min="1" max="<?= (int)$it['stock'] ?>"
+                         name="qty[<?= (int)$it['id'] ?>]"
+                         value="<?= (int)$it['qty'] ?>"
+                         style="width:90px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;">
+                  <div style="font-size:12px;opacity:.75;margin-top:6px;">Stock : <?= (int)$it['stock'] ?></div>
+                </td>
+                <td style="padding:12px 8px;">
+                  <strong><?= number_format((float)$it['total'], 2) ?> €</strong>
+                </td>
+                <td style="padding:12px 8px;text-align:right;">
+                  <button class="btn ghost" type="submit" name="remove" value="<?= (int)$it['id'] ?>">
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
       </div>
 
-      <?php foreach ($items as $it): ?>
-        <div class="cart-row">
-          <div class="cart-product">
-            <div class="thumb">🇰🇷</div>
-            <div>
-              <div class="pname"><?= htmlspecialchars($it['name']) ?></div>
-              <div class="pmuted">Stock: <?= (int)$it['stock'] ?></div>
-            </div>
-          </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;">
+        <strong style="font-size:18px;">Total : <?= number_format((float)$total, 2) ?> €</strong>
 
-          <div class="cart-price"><?= number_format((float)$it['price'], 2) ?> €</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn" type="submit" name="update" value="1">Mettre à jour</button>
+          <button class="btn ghost" type="submit" name="clear" value="1">Vider le panier</button>
 
-          <div class="cart-qty">
-            <form method="post" action="/-e-commerce-dynamique/public/cart_action.php">
-              <input type="hidden" name="action" value="minus">
-              <input type="hidden" name="id" value="<?= (int)$it['id'] ?>">
-              <button class="qty-btn" type="submit">−</button>
-            </form>
-
-            <div class="qty-value"><?= (int)$it['qty'] ?></div>
-
-            <form method="post" action="/-e-commerce-dynamique/public/cart_action.php">
-              <input type="hidden" name="action" value="plus">
-              <input type="hidden" name="id" value="<?= (int)$it['id'] ?>">
-              <button class="qty-btn" type="submit">+</button>
-            </form>
-          </div>
-
-          <div class="cart-subtotal"><?= number_format((float)$it['total'], 2) ?> €</div>
-
-          <div class="cart-remove">
-            <form method="post" action="/-e-commerce-dynamique/public/cart_action.php">
-              <input type="hidden" name="action" value="remove">
-              <input type="hidden" name="id" value="<?= (int)$it['id'] ?>">
-              <button class="remove-btn" type="submit">Supprimer</button>
-            </form>
-          </div>
+          <?php if (isset($_SESSION['user'])): ?>
+            <a class="btn ghost" href="/-e-commerce-dynamique/public/my_orders.php" style="text-decoration:none;">
+              Mes commandes
+            </a>
+            <a class="btn" href="/-e-commerce-dynamique/public/checkout.php" style="text-decoration:none;">
+              Commander
+            </a>
+          <?php else: ?>
+            <a class="btn" href="/-e-commerce-dynamique/public/login.php" style="text-decoration:none;">
+              Se connecter pour commander
+            </a>
+          <?php endif; ?>
         </div>
-      <?php endforeach; ?>
-    </div>
-
-    <div class="cart-summary">
-      <div class="sum-line">
-        <span>Total</span>
-        <strong><?= number_format((float)$total, 2) ?> €</strong>
       </div>
+    </form>
 
-      <div class="sum-actions">
-        <a class="btn ghost" href="/-e-commerce-dynamique/public/items.php">Continuer mes achats</a>
-        <a class="btn" href="/-e-commerce-dynamique/public/checkout.php">Passer commande ✅</a>
-      </div>
-    </div>
-  </div>
-
-<?php endif; ?>
+  <?php endif; ?>
 
 </main>
 

@@ -1,6 +1,9 @@
 <footer class="footer">
-  <p>© <?= date('Y') ?> K-Store KR — Boutique coréenne</p>
+  <div class="container">
+    © <?= date('Y') ?> K-Store KR — Boutique coréenne
+  </div>
 </footer>
 
 </body>
 </html>
+

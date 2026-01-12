@@ -404,3 +404,107 @@ body::before{
   gap:12px;
   flex-wrap:wrap;
 }
+/* ===== NAVBAR / TOPBAR ===== */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(90deg, rgba(255,105,180,.18), rgba(140,82,255,.18));
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.topbar-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding: 16px 0;
+}
+
+.brand{ text-decoration:none; color:inherit; }
+.brand-name{
+  font-weight:800;
+  letter-spacing:.5px;
+  color: rgba(255,255,255,.92);
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap: wrap;
+}
+
+.nav a{
+  color: rgba(255,255,255,.88);
+  text-decoration:none;
+  font-weight:600;
+  opacity:.92;
+}
+.nav a:hover{ opacity:1; }
+
+.nav-cta{
+  padding:10px 14px;
+  border-radius:999px;
+  background: linear-gradient(90deg, rgba(255,105,180,.95), rgba(140,82,255,.95));
+  color:#0a0a0a !important;
+  font-weight:800;
+  box-shadow: 0 10px 28px rgba(0,0,0,.25);
+}
+
+/* ===== PROFILE ===== */
+.profile{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background: rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+}
+.profile .avatar{
+  width:28px;height:28px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background: rgba(255,255,255,.12);
+}
+.profile-name{
+  font-weight:700;
+  color: rgba(255,255,255,.9);
+}
+
+/* ===== FOOTER ===== */
+.footer{
+  padding: 22px 0;
+  opacity: .9;
+}.status{
+  padding:6px 10px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);
+}
+
+.st-pending{ background:rgba(255,255,255,.07); }
+.st-paid{ background:rgba(72,255,164,.12); border-color:rgba(72,255,164,.25); }
+.st-shipped{ background:rgba(90,170,255,.12); border-color:rgba(90,170,255,.25); }
+.st-delivered{ background:rgba(255,196,90,.14); border-color:rgba(255,196,90,.28); }
+.st-cancelled{ background:rgba(255,90,90,.12); border-color:rgba(255,90,90,.25); }
+
+select{
+  color: #fff;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+}
+
+select:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255,105,180,.18);
+}
+
+option{
+  color: #111;          /* lisible dans le menu blanc */
+  background: #fff;     /* le menu restera blanc mais propre */
+}
