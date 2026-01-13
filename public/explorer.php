@@ -60,7 +60,6 @@ if ($sort === 'price_asc') $order = "i.price ASC";
 if ($sort === 'price_desc') $order = "i.price DESC";
 if ($sort === 'name_asc') $order = "i.name ASC";
 
-/* ✅ requête */
 $sql = "
 SELECT i.*, c.name AS category
 FROM items i
@@ -85,37 +84,59 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <div class="alert"><?= htmlspecialchars($flash) ?></div>
 <?php endif; ?>
 
-<div class="panel" style="padding:16px;">
-  <form method="get" class="filters">
+<div class="k-filterbar">
+  <form method="get" class="k-filters">
 
-    <input type="text" name="q" placeholder="Rechercher..." value="<?= htmlspecialchars($q) ?>">
+    <div class="k-search">
+      <span class="k-search-icon">🔎</span>
+      <input class="k-input" type="text" name="q" placeholder="Rechercher..." value="<?= htmlspecialchars($q) ?>">
+      <?php if ($q !== ''): ?>
+        <a class="k-clear" href="explorer.php" title="Effacer">✕</a>
+      <?php endif; ?>
+    </div>
 
-    <select name="category">
-      <option value="0">Toutes catégories</option>
-      <?php foreach ($categories as $c): ?>
-        <option value="<?= (int)$c['id'] ?>" <?= $categoryId==(int)$c['id']?'selected':'' ?>>
-          <?= htmlspecialchars($c['name']) ?>
-        </option>
-      <?php endforeach; ?>
-    </select>
+    <div class="k-row">
+      <div class="k-field">
+        <label class="k-label">Catégorie</label>
+        <select class="k-select" name="category">
+          <option value="0">Toutes catégories</option>
+          <?php foreach ($categories as $c): ?>
+            <option value="<?= (int)$c['id'] ?>" <?= $categoryId==(int)$c['id']?'selected':'' ?>>
+              <?= htmlspecialchars($c['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
 
-    <select name="sort">
-      <option value="new" <?= $sort==='new'?'selected':'' ?>>Nouveautés</option>
-      <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Prix ↑</option>
-      <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Prix ↓</option>
-      <option value="name_asc" <?= $sort==='name_asc'?'selected':'' ?>>Nom A-Z</option>
-    </select>
+      <div class="k-field">
+        <label class="k-label">Trier</label>
+        <select class="k-select" name="sort">
+          <option value="new" <?= $sort==='new'?'selected':'' ?>>Nouveautés</option>
+          <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Prix ↑</option>
+          <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Prix ↓</option>
+          <option value="name_asc" <?= $sort==='name_asc'?'selected':'' ?>>Nom A-Z</option>
+        </select>
+      </div>
 
-    <input type="number" step="0.01" name="min" placeholder="Prix min" value="<?= htmlspecialchars($min) ?>">
-    <input type="number" step="0.01" name="max" placeholder="Prix max" value="<?= htmlspecialchars($max) ?>">
+      <div class="k-field">
+        <label class="k-label">Prix</label>
+        <div class="k-price">
+          <input class="k-input" type="number" step="0.01" name="min" placeholder="Min" value="<?= htmlspecialchars($min) ?>">
+          <span class="k-sep">—</span>
+          <input class="k-input" type="number" step="0.01" name="max" placeholder="Max" value="<?= htmlspecialchars($max) ?>">
+        </div>
+      </div>
 
-    <label>
-      <input type="checkbox" name="in_stock" value="1" <?= $inStock ? 'checked' : '' ?>>
-      En stock seulement
-    </label>
+      <label class="k-check">
+        <input type="checkbox" name="in_stock" value="1" <?= $inStock ? 'checked' : '' ?>>
+        <span>En stock seulement</span>
+      </label>
 
-    <button class="btn" type="submit">Filtrer</button>
-    <a class="btn ghost" href="explorer.php">Reset</a>
+      <div class="k-actions">
+        <button class="btn k-btn" type="submit">Filtrer</button>
+        <a class="btn ghost k-btn" href="explorer.php" style="text-decoration:none;">Reset</a>
+      </div>
+    </div>
 
   </form>
 </div>
@@ -127,7 +148,6 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
   <article class="card">
 
-    <!-- ✅ Image comme sur Catalogue -->
     <div class="card-media">
       <img
         src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>"
@@ -137,13 +157,11 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="card-body">
       <small class="tag"><?= htmlspecialchars($item['category'] ?? 'Sans catégorie') ?></small>
-
       <?php if ($out): ?>
         <small class="tag" style="background:#ff4d6d;">Épuisé</small>
       <?php endif; ?>
 
       <h3><?= htmlspecialchars($item['name']) ?></h3>
-
       <p><?= htmlspecialchars(mb_strimwidth($item['description'] ?? '', 0, 100, '...')) ?></p>
 
       <div class="row">

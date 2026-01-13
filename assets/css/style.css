@@ -563,3 +563,156 @@ option{
 .stock.in{
     color:#6bff9c;
 }
+/* ---- K-Style Filter Bar (Modern / Korean vibe) ---- */
+.k-filterbar{
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px rgba(0,0,0,.25);
+}
+
+.k-filters{
+  display: grid;
+  gap: 14px;
+}
+
+/* Search */
+.k-search{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.k-search-icon{
+  opacity:.9;
+}
+
+.k-input, .k-select{
+  width: 100%;
+  color: #fff;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.k-input::placeholder{
+  color: rgba(255,255,255,.55);
+}
+
+.k-clear{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+  text-decoration:none;
+  color:#fff;
+  opacity:.9;
+}
+.k-clear:hover{ opacity:1; }
+
+/* Grid row */
+.k-row{
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.k-field{
+  grid-column: span 3;
+  min-width: 170px;
+}
+
+.k-label{
+  display:block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  opacity:.75;
+}
+
+.k-select{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.12);
+  appearance: none;
+}
+
+/* Price duo */
+.k-price{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.k-price .k-input{
+  min-width: 0;
+}
+
+.k-sep{
+  opacity:.55;
+}
+
+/* Checkbox pill */
+.k-check{
+  grid-column: span 3;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.12);
+  cursor: pointer;
+  user-select: none;
+}
+.k-check input{ transform: scale(1.05); }
+
+/* Actions */
+.k-actions{
+  grid-column: span 3;
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap: wrap;
+}
+
+.k-btn{
+  border-radius: 999px !important;
+}
+
+/* Focus glow (neon soft) */
+.k-search:focus-within,
+.k-price:focus-within,
+.k-select:focus,
+.k-check:focus-within{
+  border-color: rgba(124,92,255,.55);
+  box-shadow: 0 0 0 3px rgba(124,92,255,.18);
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .k-field{ grid-column: span 6; }
+  .k-check{ grid-column: span 6; }
+  .k-actions{ grid-column: span 12; justify-content: flex-start; }
+}
+@media (max-width: 560px){
+  .k-field{ grid-column: span 12; }
+  .k-check{ grid-column: span 12; }
+}
