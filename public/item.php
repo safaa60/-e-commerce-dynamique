@@ -4,19 +4,10 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) die("Produit introuvable");
 
 $msg = null;
-
-// Ajout au panier (POST)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
-  $qty = isset($_POST['qty']) ? (int)$_POST['qty'] : 1;
-  $qty = max(1, $qty);
-
-  // addToCart limite déjà au stock
-  $msg = addToCart($pdo, $id, $qty);
-}
 
 $stmt = $pdo->prepare("
   SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image, i.is_active,
@@ -26,12 +17,39 @@ $stmt = $pdo->prepare("
   WHERE i.id = ? AND i.is_active = 1
 ");
 $stmt->execute([$id]);
-$item = $stmt->fetch();
+$item = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$item) die("Produit introuvable");
 
-$isOut = ((int)$item['stock'] <= 0);
-$restock = $item['restock_at'] ? date('d/m/Y', strtotime($item['restock_at'])) : null;
+$isOut  = ((int)$item['stock'] <= 0);
+$restock= $item['restock_at'] ? date('d/m/Y', strtotime($item['restock_at'])) : null;
+$image  = !empty($item['image']) ? $item['image'] : 'placeholder.jpg';
+
+/* tailles dispos (si aucune => tableau vide) */
+$sizesStmt = $pdo->prepare("
+  SELECT s.id, s.code
+  FROM item_sizes isz
+  JOIN sizes s ON s.id = isz.size_id
+  WHERE isz.item_id = ?
+  ORDER BY
+    CASE
+      WHEN s.code REGEXP '^[0-9]+$' THEN 1
+      WHEN s.code REGEXP '^[0-9]+-[0-9]+$' THEN 2
+      ELSE 3
+    END,
+    s.code
+");
+$sizesStmt->execute([$id]);
+$sizes = $sizesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+/* Ajout au panier */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+  $qty = max(1, (int)($_POST['qty'] ?? 1));
+  $sizeId = (isset($_POST['size_id']) && $_POST['size_id'] !== '') ? (int)$_POST['size_id'] : null;
+
+  $msg = addToCart($pdo, $id, $qty, $sizeId);
+  if ($msg === null) $msg = "Ajouté au panier ✅";
+}
 
 $title = htmlspecialchars($item['name']) . " - K-Store";
 require_once __DIR__ . '/../includes/header.php';
@@ -50,64 +68,88 @@ require_once __DIR__ . '/../includes/header.php';
 </header>
 
 <main class="container" style="max-width:980px;">
+
   <?php if ($msg): ?>
     <div class="alert" style="margin-bottom:14px;">
       <?= htmlspecialchars($msg) ?>
     </div>
   <?php endif; ?>
 
-  <div class="card" style="padding:18px;">
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
-      <div>
-        <?php if ($isOut): ?>
-          <span class="tag" style="background:rgba(255,90,90,.18);border:1px solid rgba(255,90,90,.35);color:#ffd0d0;">
-            Épuisé
-          </span>
-          <?php if ($restock): ?>
-            <span class="tag" style="margin-left:8px;">
-              Restock prévu : <?= htmlspecialchars($restock) ?>
-            </span>
-          <?php endif; ?>
-        <?php else: ?>
-          <span class="tag">En stock</span>
-        <?php endif; ?>
-      </div>
-
-      <div style="text-align:right;">
-        <div style="opacity:.8;">Prix</div>
-        <div style="font-size:26px;font-weight:800;">
-          <?= number_format((float)$item['price'], 2) ?> €
-        </div>
-        <div style="opacity:.85;">Stock : <?= (int)$item['stock'] ?></div>
+  <div class="panel" style="display:grid;grid-template-columns: 1fr 1fr;gap:18px;align-items:start;">
+    <div>
+      <div class="card-media" style="height:340px;">
+        <img src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>"
+             alt="<?= htmlspecialchars($item['name']) ?>">
       </div>
     </div>
 
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,.10);margin:14px 0;">
+    <div>
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+        <div>
+          <?php if ($isOut): ?>
+            <span class="tag" style="background:rgba(255,90,90,.18);border:1px solid rgba(255,90,90,.35);color:#ffd0d0;">
+              Épuisé
+            </span>
+            <?php if ($restock): ?>
+              <span class="tag" style="margin-left:8px;">
+                Restock prévu : <?= htmlspecialchars($restock) ?>
+              </span>
+            <?php endif; ?>
+          <?php else: ?>
+            <span class="tag">En stock</span>
+          <?php endif; ?>
+        </div>
 
-    <p style="line-height:1.6;">
-      <?= nl2br(htmlspecialchars($item['description'])) ?>
-    </p>
+        <div style="text-align:right;">
+          <div style="opacity:.8;">Prix</div>
+          <div style="font-size:26px;font-weight:800;">
+            <?= number_format((float)$item['price'], 2) ?> €
+          </div>
+          <div style="opacity:.85;">Stock : <?= (int)$item['stock'] ?></div>
+        </div>
+      </div>
 
-    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <a class="btn ghost" href="/-e-commerce-dynamique/public/items.php" style="text-decoration:none;">
-        ← Retour catalogue
-      </a>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,.10);margin:14px 0;">
 
-      <?php if (!$isOut): ?>
-        <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0;">
-          <input type="hidden" name="add_to_cart" value="1">
-          <label style="display:flex;gap:8px;align-items:center;">
-            Quantité
-            <input type="number" name="qty" value="1" min="1" max="<?= (int)$item['stock'] ?>" style="width:90px;">
-          </label>
-          <button class="btn" type="submit">Ajouter au panier</button>
-        </form>
-      <?php else: ?>
-        <!-- pas de formulaire -->
-        <button class="btn" type="button" disabled style="opacity:.55;cursor:not-allowed;">
-          Indisponible
-        </button>
-      <?php endif; ?>
+      <div style="line-height:1.6;">
+        <?= nl2br(htmlspecialchars($item['description'] ?? '')) ?>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <a class="btn ghost" href="/-e-commerce-dynamique/public/items.php" style="text-decoration:none;">
+          ← Retour catalogue
+        </a>
+
+        <?php if (!$isOut): ?>
+          <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:0;">
+            <input type="hidden" name="add_to_cart" value="1">
+
+            <?php if (!empty($sizes)): ?>
+              <label style="display:flex;flex-direction:column;gap:6px;font-weight:800;">
+                Taille / pointure
+                <select name="size_id" required style="padding:8px;border-radius:10px;">
+                  <option value="">Choisir…</option>
+                  <?php foreach ($sizes as $s): ?>
+                    <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars($s['code']) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+            <?php endif; ?>
+
+            <label style="display:flex;flex-direction:column;gap:6px;font-weight:800;">
+              Quantité
+              <input type="number" name="qty" value="1" min="1" max="<?= (int)$item['stock'] ?>" style="width:90px;">
+            </label>
+
+            <button class="btn" type="submit">Ajouter au panier</button>
+            <a class="btn ghost" href="/-e-commerce-dynamique/public/cart.php" style="text-decoration:none;">Voir panier</a>
+          </form>
+        <?php else: ?>
+          <button class="btn" type="button" disabled style="opacity:.55;cursor:not-allowed;">
+            Indisponible
+          </button>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 </main>

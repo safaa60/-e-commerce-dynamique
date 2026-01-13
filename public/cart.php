@@ -6,20 +6,18 @@ require_once __DIR__ . '/../includes/functions.php';
 $title = "Panier - K-Store";
 require_once __DIR__ . '/../includes/header.php';
 
-$items = getCartItems($pdo);
-$total = getCartTotal($items);
-
 // actions panier
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
   if (isset($_POST['update'])) {
-    foreach (($_POST['qty'] ?? []) as $id => $qty) {
-      updateCartQty((int)$id, (int)$qty);
+    foreach (($_POST['qty'] ?? []) as $key => $qty) {
+      updateCartQty($pdo, (string)$key, (int)$qty);
     }
   }
 
   if (isset($_POST['remove'])) {
-    $id = (int)($_POST['remove'] ?? 0);
-    if ($id > 0) removeFromCart($id);
+    $key = (string)($_POST['remove'] ?? '');
+    if ($key !== '') removeFromCart($key);
   }
 
   if (isset($_POST['clear'])) {
@@ -30,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   exit;
 }
 
-// refresh
 $items = getCartItems($pdo);
 $total = getCartTotal($items);
 ?>
@@ -52,10 +49,11 @@ $total = getCartTotal($items);
 
     <form method="post" class="panel" style="padding:16px;">
       <div style="overflow:auto;">
-        <table style="width:100%;border-collapse:collapse;min-width:720px;">
+        <table style="width:100%;border-collapse:collapse;min-width:820px;">
           <thead>
             <tr style="text-align:left;border-bottom:1px solid rgba(255,255,255,.12);">
               <th style="padding:12px 8px;">Produit</th>
+              <th style="padding:12px 8px;">Taille</th>
               <th style="padding:12px 8px;">Prix</th>
               <th style="padding:12px 8px;">Quantité</th>
               <th style="padding:12px 8px;">Total</th>
@@ -67,23 +65,36 @@ $total = getCartTotal($items);
             <?php foreach ($items as $it): ?>
               <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
                 <td style="padding:12px 8px;">
-                  <strong><?= htmlspecialchars($it['name']) ?></strong>
+                  <div style="display:flex;gap:10px;align-items:center;">
+                    <img src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($it['image']) ?>"
+                         alt="<?= htmlspecialchars($it['name']) ?>"
+                         style="width:46px;height:46px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.14);">
+                    <strong><?= htmlspecialchars($it['name']) ?></strong>
+                  </div>
                 </td>
+
+                <td style="padding:12px 8px;">
+                  <?= $it['size_code'] ? htmlspecialchars($it['size_code']) : '-' ?>
+                </td>
+
                 <td style="padding:12px 8px;">
                   <?= number_format((float)$it['price'], 2) ?> €
                 </td>
+
                 <td style="padding:12px 8px;">
                   <input type="number" min="1" max="<?= (int)$it['stock'] ?>"
-                         name="qty[<?= (int)$it['id'] ?>]"
+                         name="qty[<?= htmlspecialchars($it['cart_key']) ?>]"
                          value="<?= (int)$it['qty'] ?>"
                          style="width:90px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;">
                   <div style="font-size:12px;opacity:.75;margin-top:6px;">Stock : <?= (int)$it['stock'] ?></div>
                 </td>
+
                 <td style="padding:12px 8px;">
                   <strong><?= number_format((float)$it['total'], 2) ?> €</strong>
                 </td>
+
                 <td style="padding:12px 8px;text-align:right;">
-                  <button class="btn ghost" type="submit" name="remove" value="<?= (int)$it['id'] ?>">
+                  <button class="btn ghost" type="submit" name="remove" value="<?= htmlspecialchars($it['cart_key']) ?>">
                     Supprimer
                   </button>
                 </td>

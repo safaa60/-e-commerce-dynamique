@@ -4,31 +4,35 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 $action = $_POST['action'] ?? '';
-$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+$key = (string)($_POST['key'] ?? '');         // ex: "12:5"
+$id  = (int)($_POST['id'] ?? 0);
+$sizeId = (isset($_POST['size_id']) && $_POST['size_id'] !== '') ? (int)$_POST['size_id'] : null;
 
-if ($id <= 0) {
+initCart();
+
+/* Si on ne reçoit pas key, on la reconstruit */
+if ($key === '' && $id > 0) {
+  $key = cartKey($id, $sizeId);
+}
+
+if ($key === '') {
   header("Location: cart.php");
   exit;
 }
 
-initCart();
-
 switch ($action) {
   case 'plus':
-    addToCart($id, 1);
+    // ajoute +1 sur la même ligne (item + size)
+    addToCart($pdo, $id > 0 ? $id : (int)($_SESSION['cart'][$key]['item_id'] ?? 0), 1, (int)($_SESSION['cart'][$key]['size_id'] ?? $sizeId));
     break;
 
   case 'minus':
-    $current = $_SESSION['cart'][$id] ?? 0;
-    updateCartQty($id, (int)$current - 1);
+    $current = (int)($_SESSION['cart'][$key]['qty'] ?? 0);
+    updateCartQty($pdo, $key, $current - 1);
     break;
 
   case 'remove':
-    removeFromCart($id);
-    break;
-
-  default:
-    // rien
+    removeFromCart($key);
     break;
 }
 
