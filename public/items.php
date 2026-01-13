@@ -2,24 +2,45 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
-/* 6 produits à la une : on prend les plus récents */
-$stmt = $pdo->prepare("
-  SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image,
-         c.name AS category
-  FROM items i
-  LEFT JOIN categories c ON c.id = i.category_id
-  WHERE i.is_active = 1
-  ORDER BY i.published_at DESC, i.id DESC
-  LIMIT 6
-");
-$stmt->execute();
-$items = $stmt->fetchAll();
+/**
+ * 6 produits à la une (les plus récents)
+ * - Si `published_at` existe : tri par date
+ * - Sinon : tri par id
+ */
+try {
+    $stmt = $pdo->prepare("
+        SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image,
+               c.name AS category
+        FROM items i
+        LEFT JOIN categories c ON c.id = i.category_id
+        WHERE i.is_active = 1
+        ORDER BY i.published_at DESC, i.id DESC
+        LIMIT 6
+    ");
+    $stmt->execute();
+} catch (PDOException $e) {
+    // Fallback si published_at n'existe pas
+    $stmt = $pdo->prepare("
+        SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image,
+               c.name AS category
+        FROM items i
+        LEFT JOIN categories c ON c.id = i.category_id
+        WHERE i.is_active = 1
+        ORDER BY i.id DESC
+        LIMIT 6
+    ");
+    $stmt->execute();
+}
+
+$items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $title = "K-Store - Catalogue";
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<header class="container hero">
+<!-- HERO (attention: pas de <header> HTML si ton includes/header.php en contient déjà un)
+     Ici je mets une section pour éviter les problèmes de structure -->
+<section class="container hero">
   <div class="badge">
     <span class="flag">🇰🇷</span>
     <span class="hangul">케이스토어</span>
@@ -30,7 +51,6 @@ require_once __DIR__ . '/../includes/header.php';
   <h1>K-Store <span class="kr">KR</span></h1>
   <p>Le meilleur de la Corée, livré chez toi 🇰🇷✨</p>
 
-  <!-- ✅ Boutons -->
   <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
     <a class="btn" href="/-e-commerce-dynamique/public/explorer.php" style="text-decoration:none;">
       Explorer tout le magasin →
@@ -39,7 +59,7 @@ require_once __DIR__ . '/../includes/header.php';
       Voir le panier
     </a>
   </div>
-</header>
+</section>
 
 <main class="container">
   <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
@@ -53,9 +73,22 @@ require_once __DIR__ . '/../includes/header.php';
     <?php foreach ($items as $item): ?>
       <?php
         $isOut = ((int)$item['stock'] <= 0);
-        $restock = $item['restock_at'] ? date('d/m/Y', strtotime($item['restock_at'])) : null;
+        $restock = !empty($item['restock_at']) ? date('d/m/Y', strtotime($item['restock_at'])) : null;
+
+        $image = !empty($item['image']) ? $item['image'] : 'placeholder.jpg';
+        $desc = $item['description'] ?? '';
       ?>
+
       <article class="card">
+
+        <!-- ✅ Image produit (comme ton ancien catalogue) -->
+        <div class="card-media">
+          <img
+            src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>"
+            alt="<?= htmlspecialchars($item['name']) ?>"
+          >
+        </div>
+
         <div class="card-body">
           <small class="tag"><?= htmlspecialchars($item['category'] ?? 'Sans catégorie') ?></small>
 
@@ -65,14 +98,13 @@ require_once __DIR__ . '/../includes/header.php';
             </small>
           <?php endif; ?>
 
-          <h2 style="margin-top:10px;">
-            <a href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>"
-               style="color:inherit;text-decoration:none;">
-              <?= htmlspecialchars($item['name']) ?>
-            </a>
-          </h2>
+          <h3 style="margin-top:10px;">
+            <?= htmlspecialchars($item['name']) ?>
+          </h3>
 
-          <p><?= htmlspecialchars(mb_strimwidth($item['description'], 0, 120, '...')) ?></p>
+          <?php if (!empty($desc)): ?>
+            <p><?= htmlspecialchars(mb_strimwidth($desc, 0, 120, '...')) ?></p>
+          <?php endif; ?>
 
           <div class="row">
             <strong><?= number_format((float)$item['price'], 2) ?> €</strong>
@@ -86,6 +118,7 @@ require_once __DIR__ . '/../includes/header.php';
           <?php endif; ?>
 
           <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+            <!-- ✅ "Voir" = bouton -->
             <a class="btn ghost"
                href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>"
                style="text-decoration:none;">
@@ -93,9 +126,11 @@ require_once __DIR__ . '/../includes/header.php';
             </a>
 
             <?php if (!$isOut): ?>
-              <a class="btn" href="/-e-commerce-dynamique/public/explorer.php" style="text-decoration:none;">
-                Acheter →
-              </a>
+              <!-- ✅ "Acheter" = ajout au panier (logique e-commerce) -->
+              <form method="post" action="/-e-commerce-dynamique/public/cart.php" style="margin:0;">
+                <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+                <button class="btn" type="submit">Ajouter</button>
+              </form>
             <?php else: ?>
               <button class="btn" type="button" disabled style="opacity:.55;cursor:not-allowed;">
                 Indisponible

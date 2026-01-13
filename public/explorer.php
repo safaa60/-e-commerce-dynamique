@@ -24,7 +24,7 @@ $minVal = ($min === '' ? null : (float)$min);
 $maxVal = ($max === '' ? null : (float)$max);
 
 /* catégories */
-$categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
+$categories = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 
 /* SQL dynamique */
 $where = ["i.is_active = 1"];
@@ -60,6 +60,7 @@ if ($sort === 'price_asc') $order = "i.price ASC";
 if ($sort === 'price_desc') $order = "i.price DESC";
 if ($sort === 'name_asc') $order = "i.name ASC";
 
+/* ✅ requête */
 $sql = "
 SELECT i.*, c.name AS category
 FROM items i
@@ -70,13 +71,13 @@ ORDER BY $order
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
-$items = $stmt->fetchAll();
+$items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<header class="container hero">
+<section class="container hero">
   <h1>Explorer le magasin 🛍️</h1>
   <p>Recherche avancée • filtres • catégories</p>
-</header>
+</section>
 
 <main class="container">
 
@@ -85,69 +86,81 @@ $items = $stmt->fetchAll();
 <?php endif; ?>
 
 <div class="panel" style="padding:16px;">
-<form method="get" class="filters">
+  <form method="get" class="filters">
 
-  <input type="text" name="q" placeholder="Rechercher..." value="<?= htmlspecialchars($q) ?>">
+    <input type="text" name="q" placeholder="Rechercher..." value="<?= htmlspecialchars($q) ?>">
 
-  <select name="category">
-    <option value="0">Toutes catégories</option>
-    <?php foreach ($categories as $c): ?>
-      <option value="<?= $c['id'] ?>" <?= $categoryId==$c['id']?'selected':'' ?>>
-        <?= htmlspecialchars($c['name']) ?>
-      </option>
-    <?php endforeach; ?>
-  </select>
+    <select name="category">
+      <option value="0">Toutes catégories</option>
+      <?php foreach ($categories as $c): ?>
+        <option value="<?= (int)$c['id'] ?>" <?= $categoryId==(int)$c['id']?'selected':'' ?>>
+          <?= htmlspecialchars($c['name']) ?>
+        </option>
+      <?php endforeach; ?>
+    </select>
 
-  <select name="sort">
-    <option value="new">Nouveautés</option>
-    <option value="price_asc">Prix ↑</option>
-    <option value="price_desc">Prix ↓</option>
-    <option value="name_asc">Nom A-Z</option>
-  </select>
+    <select name="sort">
+      <option value="new" <?= $sort==='new'?'selected':'' ?>>Nouveautés</option>
+      <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Prix ↑</option>
+      <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Prix ↓</option>
+      <option value="name_asc" <?= $sort==='name_asc'?'selected':'' ?>>Nom A-Z</option>
+    </select>
 
-  <input type="number" step="0.01" name="min" placeholder="Prix min" value="<?= htmlspecialchars($min) ?>">
-  <input type="number" step="0.01" name="max" placeholder="Prix max" value="<?= htmlspecialchars($max) ?>">
+    <input type="number" step="0.01" name="min" placeholder="Prix min" value="<?= htmlspecialchars($min) ?>">
+    <input type="number" step="0.01" name="max" placeholder="Prix max" value="<?= htmlspecialchars($max) ?>">
 
-  <label>
-    <input type="checkbox" name="in_stock" value="1" <?= $inStock?'checked':'' ?>>
-    En stock seulement
-  </label>
+    <label>
+      <input type="checkbox" name="in_stock" value="1" <?= $inStock ? 'checked' : '' ?>>
+      En stock seulement
+    </label>
 
-  <button class="btn">Filtrer</button>
-  <a class="btn ghost" href="explorer.php">Reset</a>
+    <button class="btn" type="submit">Filtrer</button>
+    <a class="btn ghost" href="explorer.php">Reset</a>
 
-</form>
+  </form>
 </div>
 
 <div class="grid" style="margin-top:16px;">
-<?php foreach ($items as $item): 
-  $out = $item['stock'] <= 0;
+<?php foreach ($items as $item):
+  $out = ((int)$item['stock'] <= 0);
+  $image = !empty($item['image']) ? $item['image'] : 'placeholder.jpg';
 ?>
   <article class="card">
+
+    <!-- ✅ Image comme sur Catalogue -->
+    <div class="card-media">
+      <img
+        src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>"
+        alt="<?= htmlspecialchars($item['name']) ?>"
+      >
+    </div>
+
     <div class="card-body">
-      <small class="tag"><?= htmlspecialchars($item['category']) ?></small>
+      <small class="tag"><?= htmlspecialchars($item['category'] ?? 'Sans catégorie') ?></small>
+
       <?php if ($out): ?>
         <small class="tag" style="background:#ff4d6d;">Épuisé</small>
       <?php endif; ?>
 
-      <h2><?= htmlspecialchars($item['name']) ?></h2>
-      <p><?= htmlspecialchars(mb_strimwidth($item['description'],0,100,'...')) ?></p>
+      <h3><?= htmlspecialchars($item['name']) ?></h3>
+
+      <p><?= htmlspecialchars(mb_strimwidth($item['description'] ?? '', 0, 100, '...')) ?></p>
 
       <div class="row">
-        <strong><?= number_format($item['price'],2) ?> €</strong>
+        <strong><?= number_format((float)$item['price'], 2) ?> €</strong>
         <span>Stock: <?= (int)$item['stock'] ?></span>
       </div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;">
-        <a class="btn ghost" href="item.php?id=<?= $item['id'] ?>">Voir</a>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn ghost" href="item.php?id=<?= (int)$item['id'] ?>" style="text-decoration:none;">Voir</a>
 
         <?php if (!$out): ?>
-          <form method="post">
-            <input type="hidden" name="add_id" value="<?= $item['id'] ?>">
-            <button class="btn">Ajouter</button>
+          <form method="post" style="margin:0;">
+            <input type="hidden" name="add_id" value="<?= (int)$item['id'] ?>">
+            <button class="btn" type="submit">Ajouter</button>
           </form>
         <?php else: ?>
-          <button class="btn" disabled>Indisponible</button>
+          <button class="btn" disabled type="button">Indisponible</button>
         <?php endif; ?>
       </div>
 
