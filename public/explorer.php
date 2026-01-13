@@ -112,8 +112,8 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <label class="k-label">Trier</label>
         <select class="k-select" name="sort">
           <option value="new" <?= $sort==='new'?'selected':'' ?>>Nouveautés</option>
-          <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Prix ↑</option>
-          <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Prix ↓</option>
+          <option value="price_asc" <?= $sort==='price_asc'?'selected':'' ?>>Prix croissant</option>
+          <option value="price_desc" <?= $sort==='price_desc'?'selected':'' ?>>Prix décroissant</option>
           <option value="name_asc" <?= $sort==='name_asc'?'selected':'' ?>>Nom A-Z</option>
         </select>
       </div>
