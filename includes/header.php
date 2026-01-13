@@ -29,9 +29,10 @@ function navActive(string $path): string {
 
     <div class="nav-links">
       <a class="<?= navActive('/public/items.php') ?>" href="/-e-commerce-dynamique/public/items.php">Catalogue</a>
-
-      <!-- ✅ Bouton Explorer -->
       <a class="<?= navActive('/public/explorer.php') ?>" href="/-e-commerce-dynamique/public/explorer.php">Explorer</a>
+
+      <!-- Lien À propos -->
+      <a class="<?= navActive('/public/about.php') ?>" href="/-e-commerce-dynamique/public/about.php">À propos</a>
 
       <a class="<?= navActive('/public/cart.php') ?>" href="/-e-commerce-dynamique/public/cart.php">Panier</a>
 
@@ -45,8 +46,8 @@ function navActive(string $path): string {
         <span class="chip"><?= htmlspecialchars($fullname) ?></span>
         <a class="btn small" href="/-e-commerce-dynamique/public/logout.php">Déconnexion</a>
       <?php else: ?>
-        <a href="/-e-commerce-dynamique/public/login.php">Connexion</a>
-        <a href="/-e-commerce-dynamique/public/register.php">Inscription</a>
+        <a class="<?= navActive('/public/login.php') ?>" href="/-e-commerce-dynamique/public/login.php">Connexion</a>
+        <a class="<?= navActive('/public/register.php') ?>" href="/-e-commerce-dynamique/public/register.php">Inscription</a>
       <?php endif; ?>
     </div>
 

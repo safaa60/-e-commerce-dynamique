@@ -64,9 +64,6 @@ require_once __DIR__ . '/../includes/header.php';
 <main class="container">
   <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
     <h2 style="margin:0;">Produits à la une ✨</h2>
-    <a href="/-e-commerce-dynamique/public/explorer.php" style="opacity:.9;">
-      Voir tout →
-    </a>
   </div>
 
   <div class="grid">
