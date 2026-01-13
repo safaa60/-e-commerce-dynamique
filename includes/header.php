@@ -2,11 +2,12 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 $logged = isset($_SESSION['user']);
-$isAdmin = $logged && ($_SESSION['user']['role'] ?? '') === 'admin';
+$isAdmin = $logged && (($_SESSION['user']['role'] ?? '') === 'admin');
 $fullname = $logged ? ($_SESSION['user']['fullname'] ?? 'Profil') : null;
 
 $current = $_SERVER['REQUEST_URI'] ?? '';
-function navActive($path) {
+
+function navActive(string $path): string {
   global $current;
   return (strpos($current, $path) !== false) ? 'active' : '';
 }
@@ -14,34 +15,40 @@ function navActive($path) {
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title><?= htmlspecialchars($title ?? 'K-Store') ?></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/-e-commerce-dynamique/assets/css/style.css">
 </head>
 <body>
-  <nav class="topbar">
-    <div class="container nav-inner">
-      <a class="brand" href="/-e-commerce-dynamique/public/items.php">K-Store KR</a>
 
-      <div class="nav-links">
-        <a class="<?= navActive('/public/items.php') ?>" href="/-e-commerce-dynamique/public/items.php">Catalogue</a>
-        <a class="<?= navActive('/public/about.php') ?>" href="/-e-commerce-dynamique/public/about.php">Qui sommes-nous</a>
-        <a class="<?= navActive('/public/cart.php') ?>" href="/-e-commerce-dynamique/public/cart.php">Panier</a>
+<nav class="topbar">
+  <div class="container nav-inner">
 
-        <?php if ($isAdmin): ?>
-          <a class="<?= navActive('/admin/orders.php') ?>" href="/-e-commerce-dynamique/admin/orders.php">Admin commandes</a>
-          <a class="<?= navActive('/admin/items.php') ?>" href="/-e-commerce-dynamique/admin/items.php">Admin stock</a>
-        <?php endif; ?>
+    <a class="brand" href="/-e-commerce-dynamique/public/items.php">K-Store KR</a>
 
-        <?php if ($logged): ?>
-          <a class="<?= navActive('/public/my_orders.php') ?>" href="/-e-commerce-dynamique/public/my_orders.php">Mes commandes</a>
-          <span class="chip"><?= htmlspecialchars($fullname) ?></span>
-          <a class="btn small" href="/-e-commerce-dynamique/public/logout.php">Déconnexion</a>
-        <?php else: ?>
-          <a href="/-e-commerce-dynamique/public/login.php">Connexion</a>
-          <a href="/-e-commerce-dynamique/public/register.php">Inscription</a>
-        <?php endif; ?>
-      </div>
+    <div class="nav-links">
+      <a class="<?= navActive('/public/items.php') ?>" href="/-e-commerce-dynamique/public/items.php">Catalogue</a>
+
+      <!-- ✅ Bouton Explorer -->
+      <a class="<?= navActive('/public/explorer.php') ?>" href="/-e-commerce-dynamique/public/explorer.php">Explorer</a>
+
+      <a class="<?= navActive('/public/cart.php') ?>" href="/-e-commerce-dynamique/public/cart.php">Panier</a>
+
+      <?php if ($isAdmin): ?>
+        <a class="<?= navActive('/admin/orders.php') ?>" href="/-e-commerce-dynamique/admin/orders.php">Admin commandes</a>
+        <a class="<?= navActive('/admin/items.php') ?>" href="/-e-commerce-dynamique/admin/items.php">Admin stock</a>
+      <?php endif; ?>
+
+      <?php if ($logged): ?>
+        <a class="<?= navActive('/public/my_orders.php') ?>" href="/-e-commerce-dynamique/public/my_orders.php">Mes commandes</a>
+        <span class="chip"><?= htmlspecialchars($fullname) ?></span>
+        <a class="btn small" href="/-e-commerce-dynamique/public/logout.php">Déconnexion</a>
+      <?php else: ?>
+        <a href="/-e-commerce-dynamique/public/login.php">Connexion</a>
+        <a href="/-e-commerce-dynamique/public/register.php">Inscription</a>
+      <?php endif; ?>
     </div>
-  </nav>
+
+  </div>
+</nav>

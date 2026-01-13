@@ -508,3 +508,36 @@ option{
   color: #111;          /* lisible dans le menu blanc */
   background: #fff;     /* le menu restera blanc mais propre */
 }
+.filters{ display:grid; gap:12px; }
+.filters-row{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap:12px;
+  align-items:end;
+}
+.field label{
+  display:block;
+  font-weight:800;
+  margin-bottom:6px;
+  opacity:.9;
+}
+.field input, .field select{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+}
+.field.check label{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:26px;
+}
+.field.actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:24px;
+}

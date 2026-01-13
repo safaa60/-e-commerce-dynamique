@@ -1,27 +1,21 @@
 <?php
 session_start();
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/functions.php';
 
-$msg = null;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_id'])) {
-  $id = (int)$_POST['add_id'];
-  $msg = addToCart($pdo, $id, 1);
-}
-
+/* 6 produits à la une : on prend les plus récents */
 $stmt = $pdo->prepare("
-  SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image, i.is_active,
+  SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image,
          c.name AS category
   FROM items i
   LEFT JOIN categories c ON c.id = i.category_id
   WHERE i.is_active = 1
-  ORDER BY i.published_at DESC
+  ORDER BY i.published_at DESC, i.id DESC
+  LIMIT 6
 ");
 $stmt->execute();
 $items = $stmt->fetchAll();
 
-$title = "Catalogue - K-Store";
+$title = "K-Store - Catalogue";
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -32,16 +26,28 @@ require_once __DIR__ . '/../includes/header.php';
     <span class="dot">•</span>
     <span class="subtitle">K-Store KR</span>
   </div>
+
   <h1>K-Store <span class="kr">KR</span></h1>
-  <p>Boutique de produits coréens • snacks • ramen • k-beauty • k-pop</p>
+  <p>Le meilleur de la Corée, livré chez toi 🇰🇷✨</p>
+
+  <!-- ✅ Boutons -->
+  <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="/-e-commerce-dynamique/public/explorer.php" style="text-decoration:none;">
+      Explorer tout le magasin →
+    </a>
+    <a class="btn ghost" href="/-e-commerce-dynamique/public/cart.php" style="text-decoration:none;">
+      Voir le panier
+    </a>
+  </div>
 </header>
 
 <main class="container">
-  <?php if ($msg): ?>
-    <div class="alert" style="margin-bottom:14px;">
-      <?= htmlspecialchars($msg) ?>
-    </div>
-  <?php endif; ?>
+  <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+    <h2 style="margin:0;">Produits à la une ✨</h2>
+    <a href="/-e-commerce-dynamique/public/explorer.php" style="opacity:.9;">
+      Voir tout →
+    </a>
+  </div>
 
   <div class="grid">
     <?php foreach ($items as $item): ?>
@@ -60,7 +66,8 @@ require_once __DIR__ . '/../includes/header.php';
           <?php endif; ?>
 
           <h2 style="margin-top:10px;">
-            <a href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>" style="color:inherit;text-decoration:none;">
+            <a href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>"
+               style="color:inherit;text-decoration:none;">
               <?= htmlspecialchars($item['name']) ?>
             </a>
           </h2>
@@ -79,21 +86,23 @@ require_once __DIR__ . '/../includes/header.php';
           <?php endif; ?>
 
           <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-            <a class="btn ghost" href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>" style="text-decoration:none;">
+            <a class="btn ghost"
+               href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>"
+               style="text-decoration:none;">
               Voir
             </a>
 
             <?php if (!$isOut): ?>
-              <form method="post" style="margin:0;">
-                <input type="hidden" name="add_id" value="<?= (int)$item['id'] ?>">
-                <button class="btn" type="submit">Ajouter au panier</button>
-              </form>
+              <a class="btn" href="/-e-commerce-dynamique/public/explorer.php" style="text-decoration:none;">
+                Acheter →
+              </a>
             <?php else: ?>
               <button class="btn" type="button" disabled style="opacity:.55;cursor:not-allowed;">
                 Indisponible
               </button>
             <?php endif; ?>
           </div>
+
         </div>
       </article>
     <?php endforeach; ?>
