@@ -13,17 +13,31 @@ unset($_SESSION['flash_cart']);
 // actions panier
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-  if (isset($_POST['update'])) {
-    foreach (($_POST['qty'] ?? []) as $key => $qty) {
-      updateCartQty($pdo, (string)$key, (int)$qty);
+  // 1) Changement de taille
+  if (isset($_POST['size']) && is_array($_POST['size'])) {
+    foreach ($_POST['size'] as $key => $sizeId) {
+      $key = (string)$key;
+      $sizeId = ($sizeId === '' ? null : (int)$sizeId);
+      $msg = changeCartSize($pdo, $key, $sizeId);
+      if ($msg) $_SESSION['flash_cart'] = $msg;
     }
   }
 
+  // 2) Update quantités
+  if (isset($_POST['update'])) {
+    foreach (($_POST['qty'] ?? []) as $key => $qty) {
+      $msg = updateCartQty($pdo, (string)$key, (int)$qty);
+      if ($msg) $_SESSION['flash_cart'] = $msg;
+    }
+  }
+
+  // 3) Remove
   if (isset($_POST['remove'])) {
     $key = (string)($_POST['remove'] ?? '');
     if ($key !== '') removeFromCart($key);
   }
 
+  // 4) Clear
   if (isset($_POST['clear'])) {
     clearCart();
   }
@@ -71,6 +85,11 @@ $total = getCartTotal($items);
 
           <tbody>
             <?php foreach ($items as $it): ?>
+              <?php
+                $hasSizes = itemHasSizes($pdo, (int)$it['id']);
+                $sizes = $hasSizes ? getItemSizes($pdo, (int)$it['id']) : [];
+              ?>
+
               <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
                 <td style="padding:12px 8px;">
                   <div style="display:flex;gap:10px;align-items:center;">
@@ -82,7 +101,19 @@ $total = getCartTotal($items);
                 </td>
 
                 <td style="padding:12px 8px;">
-                  <?= $it['size_code'] ? htmlspecialchars($it['size_code']) : '-' ?>
+                  <?php if ($hasSizes && !empty($sizes)): ?>
+                    <select
+                      name="size[<?= htmlspecialchars($it['cart_key']) ?>]"
+                      style="padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;">
+                      <?php foreach ($sizes as $s): ?>
+                        <option value="<?= (int)$s['id'] ?>" <?= ((int)$it['size_id'] === (int)$s['id']) ? 'selected' : '' ?>>
+                          <?= htmlspecialchars($s['code']) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                  <?php else: ?>
+                    <?= $it['size_code'] ? htmlspecialchars($it['size_code']) : '-' ?>
+                  <?php endif; ?>
                 </td>
 
                 <td style="padding:12px 8px;">
@@ -136,6 +167,7 @@ $total = getCartTotal($items);
     </form>
 
   <?php endif; ?>
+
 </main>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

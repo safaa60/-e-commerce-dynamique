@@ -193,3 +193,71 @@ function getCartTotal(array $items): float {
   foreach ($items as $item) $total += (float)$item['total'];
   return $total;
 }
+/**
+ * Liste des tailles disponibles pour un produit
+ * Retour: [ ['id'=>1,'code'=>'S'], ... ]
+ */
+function getItemSizes(PDO $pdo, int $itemId): array {
+  $stmt = $pdo->prepare("
+    SELECT s.id, s.code
+    FROM item_sizes isz
+    JOIN sizes s ON s.id = isz.size_id
+    WHERE isz.item_id = ?
+    ORDER BY s.code
+  ");
+  $stmt->execute([$itemId]);
+  return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+/**
+ * Change la taille d'une ligne du panier (key -> newKey)
+ * - conserve la quantité
+ * - fusionne si la newKey existe déjà
+ * - respecte le stock
+ */
+function changeCartSize(PDO $pdo, string $key, ?int $newSizeId): ?string {
+  initCart();
+  if (!isset($_SESSION['cart'][$key])) return null;
+
+  $itemId = (int)$_SESSION['cart'][$key]['item_id'];
+  $qty    = (int)$_SESSION['cart'][$key]['qty'];
+
+  // Si produit n'a pas de tailles, on ignore
+  if (!itemHasSizes($pdo, $itemId)) {
+    return null;
+  }
+
+  // Taille obligatoire et valide
+  if (!$newSizeId) return "Veuillez choisir une taille.";
+  if (!sizeIsValidForItem($pdo, $itemId, $newSizeId)) return "Taille invalide.";
+
+  $newKey = cartKey($itemId, $newSizeId);
+
+  // Si on ne change pas vraiment
+  if ($newKey === $key) return null;
+
+  // Stock dispo
+  $stock = getItemStock($pdo, $itemId);
+  if ($stock <= 0) {
+    unset($_SESSION['cart'][$key]);
+    return "Produit épuisé : retiré du panier.";
+  }
+
+  // Fusion si la ligne existe déjà
+  $existingQty = isset($_SESSION['cart'][$newKey]) ? (int)$_SESSION['cart'][$newKey]['qty'] : 0;
+  $mergedQty = $existingQty + $qty;
+
+  if ($mergedQty > $stock) {
+    $mergedQty = $stock;
+    // on retire l'ancienne ligne quoi qu'il arrive
+    unset($_SESSION['cart'][$key]);
+    $_SESSION['cart'][$newKey] = ['item_id'=>$itemId,'size_id'=>$newSizeId,'qty'=>$mergedQty];
+    return "Stock limité : quantité ajustée à $stock.";
+  }
+
+  // appliquer
+  unset($_SESSION['cart'][$key]);
+  $_SESSION['cart'][$newKey] = ['item_id'=>$itemId,'size_id'=>$newSizeId,'qty'=>$mergedQty];
+
+  return null;
+}
