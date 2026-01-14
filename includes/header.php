@@ -30,19 +30,19 @@ function navActive(string $path): string {
     <div class="nav-links">
       <a class="<?= navActive('/public/items.php') ?>" href="/-e-commerce-dynamique/public/items.php">Catalogue</a>
       <a class="<?= navActive('/public/explorer.php') ?>" href="/-e-commerce-dynamique/public/explorer.php">Explorer</a>
-
-      <!-- Lien À propos -->
       <a class="<?= navActive('/public/about.php') ?>" href="/-e-commerce-dynamique/public/about.php">À propos</a>
-
       <a class="<?= navActive('/public/cart.php') ?>" href="/-e-commerce-dynamique/public/cart.php">Panier</a>
 
+      <?php if ($logged): ?>
+        <a class="<?= navActive('/public/my_orders.php') ?>" href="/-e-commerce-dynamique/public/my_orders.php">Mes commandes</a>
+      <?php endif; ?>
+
       <?php if ($isAdmin): ?>
-        <a class="<?= navActive('/admin/orders.php') ?>" href="/-e-commerce-dynamique/admin/orders.php">Admin commandes</a>
+        <a class="<?= navActive('/public/admin_orders.php') ?>" href="/-e-commerce-dynamique/public/admin_orders.php">Admin commandes</a>
         <a class="<?= navActive('/admin/items.php') ?>" href="/-e-commerce-dynamique/admin/items.php">Admin stock</a>
       <?php endif; ?>
 
       <?php if ($logged): ?>
-        <a class="<?= navActive('/public/my_orders.php') ?>" href="/-e-commerce-dynamique/public/my_orders.php">Mes commandes</a>
         <span class="chip"><?= htmlspecialchars($fullname) ?></span>
         <a class="btn small" href="/-e-commerce-dynamique/public/logout.php">Déconnexion</a>
       <?php else: ?>

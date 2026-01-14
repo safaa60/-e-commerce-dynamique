@@ -26,16 +26,16 @@ $userName = $_SESSION['user']['fullname'] ?? '';
 $userEmail = $_SESSION['user']['email'] ?? '';
 
 if ($userId <= 0) {
-  // sécurité
   header("Location: /-e-commerce-dynamique/public/login.php");
   exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // On demande juste l'adresse, le nom/email viennent du compte
   $address = trim($_POST['address'] ?? '');
 
-  if ($address === '' || strlen($address) < 8) $errors[] = "Adresse invalide.";
+  if ($address === '' || mb_strlen($address) < 8) {
+    $errors[] = "Adresse invalide.";
+  }
 
   // Vérif stock avant commande
   if (empty($errors)) {
@@ -50,13 +50,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
       $pdo->beginTransaction();
 
-      // 1) créer la commande
-      // On garde customer_name/email/address même si tu utilises user_id (c’est utile pour facture/livraison)
+      // 1) créer la commande (✅ conforme à ta table orders)
       $stmt = $pdo->prepare("
-        INSERT INTO orders (user_id, customer_name, customer_email, customer_address, total, status)
-        VALUES (?, ?, ?, ?, ?, 'paid')
+        INSERT INTO orders (
+          user_id,
+          customer_name,
+          customer_email,
+          customer_address,
+          status,
+          total,
+          created_at,
+          delivered_at,
+          is_archived
+        )
+        VALUES (?, ?, ?, ?, ?, ?, NOW(), NULL, 0)
       ");
-      $stmt->execute([$userId, $userName, $userEmail, $address, $total]);
+      $stmt->execute([
+        $userId,
+        $userName,
+        $userEmail,
+        $address,
+        'paid',
+        $total
+      ]);
 
       $orderId = (int)$pdo->lastInsertId();
 
@@ -98,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-$oldAddress = htmlspecialchars($_POST['address'] ?? '');
+$oldAddress = htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES);
 ?>
 
 <header class="container hero">

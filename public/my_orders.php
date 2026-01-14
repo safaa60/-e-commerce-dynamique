@@ -17,34 +17,40 @@ $stmt = $pdo->prepare("
   ORDER BY id DESC
 ");
 $stmt->execute([$userId]);
-$orders = $stmt->fetchAll();
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 function statusLabel($s){
+  $s = strtolower(trim((string)$s));
   return match($s){
-    'pending'   => 'En attente',
-    'paid'      => 'Payée',
-    'shipped'   => 'Expédiée',
-    'delivered' => 'Livrée',
-    'cancelled' => 'Annulée',
-    default     => $s
+    'pending', 'en_attente'                 => 'En attente',
+    'paid', 'payee', 'payée'               => 'Payée',
+    'shipped', 'expediee', 'expédiée'      => 'Expédiée',
+    'delivered', 'livree', 'livrée'        => 'Livrée',
+    'cancelled', 'annulee', 'annulée'      => 'Annulée',
+    'en_preparation'                       => 'En préparation',
+    'livraison', 'en_cours_de_livraison'   => 'En cours de livraison',
+    default                                => (string)$s
   };
 }
 
 function statusClass($s){
+  $s = strtolower(trim((string)$s));
   return match($s){
-    'pending'   => 'st-pending',
-    'paid'      => 'st-paid',
-    'shipped'   => 'st-shipped',
-    'delivered' => 'st-delivered',
-    'cancelled' => 'st-cancelled',
-    default     => 'st-pending'
+    'pending', 'en_attente'                 => 'st-pending',
+    'paid', 'payee', 'payée'               => 'st-paid',
+    'shipped', 'expediee', 'expédiée'      => 'st-shipped',
+    'delivered', 'livree', 'livrée'        => 'st-delivered',
+    'cancelled', 'annulee', 'annulée'      => 'st-cancelled',
+    'en_preparation'                       => 'st-pending',
+    'livraison', 'en_cours_de_livraison'   => 'st-shipped',
+    default                                => 'st-pending'
   };
 }
 ?>
 
 <header class="container hero">
   <h1>Mes commandes 🧾</h1>
-  <p>Suivi en temps réel : payée → expédiée → livrée.</p>
+  <p>Suivi de tes commandes : statut mis à jour par l’admin.</p>
 </header>
 
 <main class="container">
@@ -69,7 +75,7 @@ function statusClass($s){
               <strong><?= number_format((float)$o['total'], 2) ?> €</strong>
             </div>
 
-            <?php if ($o['status'] === 'delivered' && !empty($o['delivered_at'])): ?>
+            <?php if (in_array(strtolower((string)$o['status']), ['delivered','livree','livrée'], true) && !empty($o['delivered_at'])): ?>
               <div style="margin-top:8px;opacity:.9;">
                 Livrée le : <?= htmlspecialchars($o['delivered_at']) ?>
               </div>
@@ -80,7 +86,7 @@ function statusClass($s){
                 Voir détail →
               </a>
 
-              <?php if ($o['status'] === 'delivered'): ?>
+              <?php if (in_array(strtolower((string)$o['status']), ['delivered','livree','livrée'], true)): ?>
                 <a class="btn" href="/-e-commerce-dynamique/public/archive_order.php?id=<?= (int)$o['id'] ?>" style="text-decoration:none;">
                   Retirer de la liste
                 </a>
@@ -90,7 +96,4 @@ function statusClass($s){
         <?php endforeach; ?>
       </div>
     <?php endif; ?>
-  </div>
-</main>
-
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+  </d
