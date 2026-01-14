@@ -33,9 +33,32 @@ function sizeIsValidForItem(PDO $pdo, int $itemId, int $sizeId): bool {
   return (bool)$stmt->fetchColumn();
 }
 
+/** prendre une taille "par défaut" (la 1ère dispo) */
+function getDefaultSizeIdForItem(PDO $pdo, int $itemId): ?int {
+  $stmt = $pdo->prepare("
+    SELECT size_id
+    FROM item_sizes
+    WHERE item_id = ?
+    ORDER BY size_id ASC
+    LIMIT 1
+  ");
+  $stmt->execute([$itemId]);
+  $sizeId = $stmt->fetchColumn();
+  return $sizeId ? (int)$sizeId : null;
+}
+
+function getSizeCode(PDO $pdo, int $sizeId): ?string {
+  $stmt = $pdo->prepare("SELECT code FROM sizes WHERE id = ? LIMIT 1");
+  $stmt->execute([$sizeId]);
+  $code = $stmt->fetchColumn();
+  return $code ? (string)$code : null;
+}
+
 /**
  * Ajout panier (avec taille optionnelle)
- * Retourne un message ou null si OK
+ * ✅ IMPORTANT : si le produit a des tailles et que sizeId n'est pas fourni,
+ * on choisit automatiquement la 1ère taille dispo.
+ * Retourne un message ou null si OK.
  */
 function addToCart(PDO $pdo, int $itemId, int $qty = 1, ?int $sizeId = null): ?string {
   initCart();
@@ -44,12 +67,21 @@ function addToCart(PDO $pdo, int $itemId, int $qty = 1, ?int $sizeId = null): ?s
   $stock = getItemStock($pdo, $itemId);
   if ($stock <= 0) return "Produit épuisé.";
 
-  // si le produit a des tailles, taille obligatoire
+  $infoMsg = null;
+
   if (itemHasSizes($pdo, $itemId)) {
-    if (!$sizeId) return "Veuillez choisir une taille / pointure.";
-    if (!sizeIsValidForItem($pdo, $itemId, $sizeId)) return "Taille / pointure invalide.";
+    // ✅ auto-size si rien fourni
+    if (!$sizeId) {
+      $sizeId = getDefaultSizeIdForItem($pdo, $itemId);
+      if (!$sizeId) return "Tailles indisponibles pour ce produit.";
+      $code = getSizeCode($pdo, $sizeId);
+      // tu peux mettre $infoMsg = null; si tu ne veux aucun message
+      $infoMsg = $code ? "Taille sélectionnée automatiquement : $code." : "Taille sélectionnée automatiquement.";
+    } else {
+      if (!sizeIsValidForItem($pdo, $itemId, $sizeId)) return "Taille / pointure invalide.";
+    }
   } else {
-    // pas de tailles -> on ignore size_id
+    // pas de tailles -> on ignore
     $sizeId = null;
   }
 
@@ -64,7 +96,8 @@ function addToCart(PDO $pdo, int $itemId, int $qty = 1, ?int $sizeId = null): ?s
   }
 
   $_SESSION['cart'][$key] = ['item_id'=>$itemId,'size_id'=>$sizeId,'qty'=>$newQty];
-  return null;
+
+  return $infoMsg; // peut être null
 }
 
 /** supprimer une ligne panier (clé) */

@@ -6,12 +6,6 @@ require_once __DIR__ . '/../includes/functions.php';
 $title = "Explorer - K-Store";
 require_once __DIR__ . '/../includes/header.php';
 
-/* Ajout panier */
-$flash = null;
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_id'])) {
-  $flash = addToCart($pdo, (int)$_POST['add_id'], 1);
-}
-
 /* Filtres */
 $q = trim($_GET['q'] ?? '');
 $categoryId = (int)($_GET['category'] ?? 0);
@@ -80,10 +74,6 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <main class="container">
 
-<?php if ($flash): ?>
-  <div class="alert"><?= htmlspecialchars($flash) ?></div>
-<?php endif; ?>
-
 <div class="k-filterbar">
   <form method="get" class="k-filters">
 
@@ -147,12 +137,8 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
   $image = !empty($item['image']) ? $item['image'] : 'placeholder.jpg';
 ?>
   <article class="card">
-
     <div class="card-media">
-      <img
-        src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>"
-        alt="<?= htmlspecialchars($item['name']) ?>"
-      >
+      <img src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
     </div>
 
     <div class="card-body">
@@ -173,15 +159,15 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <a class="btn ghost" href="item.php?id=<?= (int)$item['id'] ?>" style="text-decoration:none;">Voir</a>
 
         <?php if (!$out): ?>
-          <form method="post" style="margin:0;">
-            <input type="hidden" name="add_id" value="<?= (int)$item['id'] ?>">
+          <form method="post" action="/-e-commerce-dynamique/public/cart_add.php" style="margin:0;">
+            <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+            <input type="hidden" name="qty" value="1">
             <button class="btn" type="submit">Ajouter</button>
           </form>
         <?php else: ?>
           <button class="btn" disabled type="button">Indisponible</button>
         <?php endif; ?>
       </div>
-
     </div>
   </article>
 <?php endforeach; ?>

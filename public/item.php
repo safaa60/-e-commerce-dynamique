@@ -1,13 +1,9 @@
 <?php
 session_start();
-
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/functions.php';
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) die("Produit introuvable");
-
-$msg = null;
 
 $stmt = $pdo->prepare("
   SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image, i.is_active,
@@ -18,38 +14,22 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$id]);
 $item = $stmt->fetch(PDO::FETCH_ASSOC);
-
 if (!$item) die("Produit introuvable");
 
 $isOut  = ((int)$item['stock'] <= 0);
 $restock= $item['restock_at'] ? date('d/m/Y', strtotime($item['restock_at'])) : null;
 $image  = !empty($item['image']) ? $item['image'] : 'placeholder.jpg';
 
-/* tailles dispos (si aucune => tableau vide) */
+/* tailles dispos */
 $sizesStmt = $pdo->prepare("
   SELECT s.id, s.code
   FROM item_sizes isz
   JOIN sizes s ON s.id = isz.size_id
   WHERE isz.item_id = ?
-  ORDER BY
-    CASE
-      WHEN s.code REGEXP '^[0-9]+$' THEN 1
-      WHEN s.code REGEXP '^[0-9]+-[0-9]+$' THEN 2
-      ELSE 3
-    END,
-    s.code
+  ORDER BY s.code
 ");
 $sizesStmt->execute([$id]);
 $sizes = $sizesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-/* Ajout au panier */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
-  $qty = max(1, (int)($_POST['qty'] ?? 1));
-  $sizeId = (isset($_POST['size_id']) && $_POST['size_id'] !== '') ? (int)$_POST['size_id'] : null;
-
-  $msg = addToCart($pdo, $id, $qty, $sizeId);
-  if ($msg === null) $msg = "Ajouté au panier ✅";
-}
 
 $title = htmlspecialchars($item['name']) . " - K-Store";
 require_once __DIR__ . '/../includes/header.php';
@@ -68,13 +48,6 @@ require_once __DIR__ . '/../includes/header.php';
 </header>
 
 <main class="container" style="max-width:980px;">
-
-  <?php if ($msg): ?>
-    <div class="alert" style="margin-bottom:14px;">
-      <?= htmlspecialchars($msg) ?>
-    </div>
-  <?php endif; ?>
-
   <div class="panel" style="display:grid;grid-template-columns: 1fr 1fr;gap:18px;align-items:start;">
     <div>
       <div class="card-media" style="height:340px;">
@@ -121,14 +94,15 @@ require_once __DIR__ . '/../includes/header.php';
         </a>
 
         <?php if (!$isOut): ?>
-          <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:0;">
-            <input type="hidden" name="add_to_cart" value="1">
+          <form method="post" action="/-e-commerce-dynamique/public/cart_add.php"
+                style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:0;">
+            <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 
             <?php if (!empty($sizes)): ?>
               <label style="display:flex;flex-direction:column;gap:6px;font-weight:800;">
                 Taille / pointure
-                <select name="size_id" required style="padding:8px;border-radius:10px;">
-                  <option value="">Choisir…</option>
+                <select name="size_id" style="padding:8px;border-radius:10px;">
+                  <option value="">Auto</option>
                   <?php foreach ($sizes as $s): ?>
                     <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars($s['code']) ?></option>
                   <?php endforeach; ?>

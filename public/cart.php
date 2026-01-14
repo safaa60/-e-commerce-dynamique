@@ -6,6 +6,10 @@ require_once __DIR__ . '/../includes/functions.php';
 $title = "Panier - K-Store";
 require_once __DIR__ . '/../includes/header.php';
 
+/* Flash message */
+$flash = $_SESSION['flash_cart'] ?? null;
+unset($_SESSION['flash_cart']);
+
 // actions panier
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -38,6 +42,10 @@ $total = getCartTotal($items);
 </header>
 
 <main class="container">
+
+  <?php if ($flash): ?>
+    <div class="alert" style="margin-bottom:14px;"><?= htmlspecialchars($flash) ?></div>
+  <?php endif; ?>
 
   <?php if (empty($items)): ?>
     <div class="panel">
@@ -128,7 +136,6 @@ $total = getCartTotal($items);
     </form>
 
   <?php endif; ?>
-
 </main>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

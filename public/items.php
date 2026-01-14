@@ -4,8 +4,6 @@ require_once __DIR__ . '/../config/db.php';
 
 /**
  * 6 produits à la une (les plus récents)
- * - Si `published_at` existe : tri par date
- * - Sinon : tri par id
  */
 try {
     $stmt = $pdo->prepare("
@@ -19,7 +17,6 @@ try {
     ");
     $stmt->execute();
 } catch (PDOException $e) {
-    // Fallback si published_at n'existe pas
     $stmt = $pdo->prepare("
         SELECT i.id, i.name, i.description, i.price, i.stock, i.restock_at, i.image,
                c.name AS category
@@ -38,8 +35,6 @@ $title = "K-Store - Catalogue";
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<!-- HERO (attention: pas de <header> HTML si ton includes/header.php en contient déjà un)
-     Ici je mets une section pour éviter les problèmes de structure -->
 <section class="container hero">
   <div class="badge">
     <span class="flag">🇰🇷</span>
@@ -77,8 +72,6 @@ require_once __DIR__ . '/../includes/header.php';
       ?>
 
       <article class="card">
-
-        <!-- ✅ Image produit (comme ton ancien catalogue) -->
         <div class="card-media">
           <img
             src="/-e-commerce-dynamique/assets/img/<?= htmlspecialchars($image) ?>"
@@ -95,9 +88,7 @@ require_once __DIR__ . '/../includes/header.php';
             </small>
           <?php endif; ?>
 
-          <h3 style="margin-top:10px;">
-            <?= htmlspecialchars($item['name']) ?>
-          </h3>
+          <h3 style="margin-top:10px;"><?= htmlspecialchars($item['name']) ?></h3>
 
           <?php if (!empty($desc)): ?>
             <p><?= htmlspecialchars(mb_strimwidth($desc, 0, 120, '...')) ?></p>
@@ -115,7 +106,6 @@ require_once __DIR__ . '/../includes/header.php';
           <?php endif; ?>
 
           <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-            <!-- ✅ "Voir" = bouton -->
             <a class="btn ghost"
                href="/-e-commerce-dynamique/public/item.php?id=<?= (int)$item['id'] ?>"
                style="text-decoration:none;">
@@ -123,9 +113,9 @@ require_once __DIR__ . '/../includes/header.php';
             </a>
 
             <?php if (!$isOut): ?>
-              <!-- ✅ "Acheter" = ajout au panier (logique e-commerce) -->
-              <form method="post" action="/-e-commerce-dynamique/public/cart.php" style="margin:0;">
+              <form method="post" action="/-e-commerce-dynamique/public/cart_add.php" style="margin:0;">
                 <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+                <input type="hidden" name="qty" value="1">
                 <button class="btn" type="submit">Ajouter</button>
               </form>
             <?php else: ?>
