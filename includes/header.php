@@ -24,7 +24,6 @@ function navActive(string $path): string {
 
 <nav class="topbar">
   <div class="container nav-inner">
-
     <a class="brand" href="/-e-commerce-dynamique/public/items.php">K-Store KR</a>
 
     <div class="nav-links">
@@ -50,6 +49,5 @@ function navActive(string $path): string {
         <a class="<?= navActive('/public/register.php') ?>" href="/-e-commerce-dynamique/public/register.php">Inscription</a>
       <?php endif; ?>
     </div>
-
   </div>
 </nav>

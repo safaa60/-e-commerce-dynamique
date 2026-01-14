@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
-requireLogin(); // compte obligatoire
+requireLogin();
 
 $title = "Commander - K-Store";
 require_once __DIR__ . '/../includes/header.php';
@@ -37,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors[] = "Adresse invalide.";
   }
 
-  // Vérif stock avant commande
   if (empty($errors)) {
     foreach ($items as $it) {
       if ((int)$it['qty'] > (int)$it['stock']) {
@@ -50,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
       $pdo->beginTransaction();
 
-      // 1) créer la commande (✅ conforme à ta table orders)
+      // ✅ INSERT conforme à ta table orders (évite status vide)
       $stmt = $pdo->prepare("
         INSERT INTO orders (
           user_id,
@@ -76,7 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       $orderId = (int)$pdo->lastInsertId();
 
-      // 2) lignes commande + décrément stock
       $stmtLine = $pdo->prepare("
         INSERT INTO order_items (order_id, item_id, quantity, unit_price, line_total)
         VALUES (?, ?, ?, ?, ?)
@@ -126,7 +124,6 @@ $oldAddress = htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES);
 
   <div class="panel">
     <h2>Récapitulatif</h2>
-
     <?php foreach ($items as $it): ?>
       <div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.12)">
         <span><?= htmlspecialchars($it['name']) ?> × <?= (int)$it['qty'] ?></span>
@@ -164,10 +161,8 @@ $oldAddress = htmlspecialchars($_POST['address'] ?? '', ENT_QUOTES);
       <button class="btn" type="submit">Payer & Valider la commande</button>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <a class="btn ghost" href="/-e-commerce-dynamique/public/cart.php"
-           style="text-decoration:none;text-align:center">← Retour panier</a>
-        <a class="btn ghost" href="/-e-commerce-dynamique/public/my_orders.php"
-           style="text-decoration:none;text-align:center">Mes commandes →</a>
+        <a class="btn ghost" href="/-e-commerce-dynamique/public/cart.php" style="text-decoration:none;text-align:center">← Retour panier</a>
+        <a class="btn ghost" href="/-e-commerce-dynamique/public/my_orders.php" style="text-decoration:none;text-align:center">Mes commandes →</a>
       </div>
     </form>
   </div>

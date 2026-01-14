@@ -16,32 +16,23 @@ if ($orderId <= 0) {
   exit;
 }
 
-$stmt = $pdo->prepare("
-  SELECT id, customer_name, customer_email, status, total, created_at, delivered_at
-  FROM orders
-  WHERE id = ?
-  LIMIT 1
-");
+$stmt = $pdo->prepare("SELECT id, customer_name, customer_email, status, total, created_at, delivered_at FROM orders WHERE id = ? LIMIT 1");
 $stmt->execute([$orderId]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$order) die("Commande introuvable");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $status = strtolower(trim((string)($_POST['status'] ?? '')));
-
   $allowed = ['pending','paid','shipped','delivered','cancelled'];
-  if (!in_array($status, $allowed, true)) {
-    $status = strtolower((string)$order['status']);
-    if (!in_array($status, $allowed, true)) $status = 'paid';
-  }
+  if (!in_array($status, $allowed, true)) $status = 'paid';
 
+  // ✅ delivered_at seulement si delivered, sinon on ne touche pas (pour éviter de casser)
   $deliveredAt = $order['delivered_at'] ?? null;
   if ($status === 'delivered' && empty($deliveredAt)) {
     $deliveredAt = date('Y-m-d H:i:s');
   }
   if ($status !== 'delivered') {
-    // option : remettre à null si pas livré
-    $deliveredAt = null;
+    $deliveredAt = null; // option : retire la date si plus livré
   }
 
   $upd = $pdo->prepare("UPDATE orders SET status = ?, delivered_at = ? WHERE id = ?");
@@ -53,18 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $title = "Modifier commande #".$orderId;
 require_once __DIR__ . '/../includes/header.php';
-
-function statusLabel(string $s): string {
-  $s = strtolower(trim($s));
-  return match($s) {
-    'pending'   => 'En attente',
-    'paid'      => 'Payée',
-    'shipped'   => 'Expédiée',
-    'delivered' => 'Livrée',
-    'cancelled' => 'Annulée',
-    default     => $s
-  };
-}
 ?>
 
 <header class="container hero">
@@ -72,13 +51,11 @@ function statusLabel(string $s): string {
   <p>
     Client : <strong><?= htmlspecialchars($order['customer_name'] ?? '—') ?></strong>
     • <?= htmlspecialchars($order['customer_email'] ?? '—') ?>
-    • Statut actuel : <strong><?= htmlspecialchars(statusLabel((string)$order['status'])) ?></strong>
   </p>
 </header>
 
 <main class="container">
   <div class="panel" style="padding:16px;max-width:900px;">
-
     <form method="post" style="display:flex;flex-direction:column;gap:14px;">
       <label style="display:flex;flex-direction:column;gap:6px;font-weight:800;">
         Statut
@@ -96,7 +73,6 @@ function statusLabel(string $s): string {
         <a class="btn ghost" href="/-e-commerce-dynamique/public/admin_orders.php" style="text-decoration:none;">← Retour</a>
       </div>
     </form>
-
   </div>
 </main>
 

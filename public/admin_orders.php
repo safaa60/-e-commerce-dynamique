@@ -13,7 +13,6 @@ if (!isset($_SESSION['user']) || (($_SESSION['user']['role'] ?? '') !== 'admin')
 $title = "Admin commandes - K-Store";
 require_once __DIR__ . '/../includes/header.php';
 
-/* filtres */
 $status = $_GET['status'] ?? 'all';
 $archived = $_GET['archived'] ?? '0';
 
@@ -40,22 +39,22 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-function statusLabel(string $s): string {
-  $s = strtolower(trim($s));
-  return match($s) {
+function statusLabel($s){
+  $s = strtolower(trim((string)$s));
+  return match($s){
     'pending'   => 'En attente',
     'paid'      => 'Payée',
     'shipped'   => 'Expédiée',
     'delivered' => 'Livrée',
     'cancelled' => 'Annulée',
-    default     => $s
+    default     => ($s === '' ? 'paid' : $s)
   };
 }
 ?>
 
 <header class="container hero">
   <h1>Admin commandes</h1>
-  <p>Gérer le statut des commandes</p>
+  <p>Changer le statut des commandes</p>
 </header>
 
 <main class="container">
@@ -83,7 +82,6 @@ function statusLabel(string $s): string {
       </label>
 
       <button class="btn" type="submit">Filtrer</button>
-      <a class="btn ghost" href="/-e-commerce-dynamique/public/items.php" style="text-decoration:none;">Retour site</a>
     </form>
 
     <div style="overflow:auto;">
@@ -96,11 +94,9 @@ function statusLabel(string $s): string {
             <th style="padding:12px 8px;">Date</th>
             <th style="padding:12px 8px;">Statut</th>
             <th style="padding:12px 8px;">Total</th>
-            <th style="padding:12px 8px;">Livrée</th>
             <th style="padding:12px 8px;"></th>
           </tr>
         </thead>
-
         <tbody>
           <?php foreach ($orders as $o): ?>
             <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
@@ -108,18 +104,14 @@ function statusLabel(string $s): string {
               <td style="padding:12px 8px;"><?= htmlspecialchars($o['customer_name'] ?? '—') ?></td>
               <td style="padding:12px 8px;"><?= htmlspecialchars($o['customer_email'] ?? '—') ?></td>
               <td style="padding:12px 8px;"><?= htmlspecialchars($o['created_at']) ?></td>
-              <td style="padding:12px 8px;"><strong><?= htmlspecialchars(statusLabel((string)$o['status'])) ?></strong></td>
+              <td style="padding:12px 8px;"><strong><?= htmlspecialchars(statusLabel($o['status'] ?? '')) ?></strong></td>
               <td style="padding:12px 8px;"><strong><?= number_format((float)$o['total'], 2) ?> €</strong></td>
-              <td style="padding:12px 8px;"><?= !empty($o['delivered_at']) ? htmlspecialchars($o['delivered_at']) : '—' ?></td>
-
-              <td style="padding:12px 8px;text-align:right;white-space:nowrap;">
-                <a class="btn ghost" href="/-e-commerce-dynamique/public/order_details_admin.php?id=<?= (int)$o['id'] ?>" style="text-decoration:none;">Détail</a>
+              <td style="padding:12px 8px;text-align:right;">
                 <a class="btn" href="/-e-commerce-dynamique/public/admin_order_edit.php?id=<?= (int)$o['id'] ?>" style="text-decoration:none;">Modifier</a>
               </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
-
       </table>
     </div>
 

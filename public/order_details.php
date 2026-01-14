@@ -8,8 +8,8 @@ requireLogin();
 $title = "Détail commande - K-Store";
 require_once __DIR__ . '/../includes/header.php';
 
-$userId = (int)$_SESSION['user']['id'];
-$orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$userId = (int)($_SESSION['user']['id'] ?? 0);
+$orderId = (int)($_GET['id'] ?? 0);
 
 if ($orderId <= 0) {
   echo "<main class='container'><div class='panel'><h2>Commande introuvable</h2></div></main>";
@@ -17,10 +17,14 @@ if ($orderId <= 0) {
   exit;
 }
 
-// vérifier que la commande appartient à l'utilisateur
-$stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
+$stmt = $pdo->prepare("
+  SELECT id, user_id, status, total, created_at, delivered_at
+  FROM orders
+  WHERE id = ? AND user_id = ?
+  LIMIT 1
+");
 $stmt->execute([$orderId, $userId]);
-$order = $stmt->fetch();
+$order = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$order) {
   echo "<main class='container'><div class='panel'><h2>Accès refusé</h2><p>Cette commande ne t’appartient pas.</p></div></main>";
@@ -28,7 +32,6 @@ if (!$order) {
   exit;
 }
 
-// récupérer les lignes
 $stmt = $pdo->prepare("
   SELECT oi.quantity, oi.unit_price, oi.line_total, i.name
   FROM order_items oi
@@ -37,12 +40,26 @@ $stmt = $pdo->prepare("
   ORDER BY oi.id DESC
 ");
 $stmt->execute([$orderId]);
-$lines = $stmt->fetchAll();
+$lines = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+function statusLabel($s){
+  $s = strtolower(trim((string)$s));
+  return match($s){
+    'pending'   => 'En attente',
+    'paid'      => 'Payée',
+    'shipped'   => 'Expédiée',
+    'delivered' => 'Livrée',
+    'cancelled' => 'Annulée',
+    default     => ($s === '' ? 'Payée' : $s)
+  };
+}
+
+$rawStatus = (string)($order['status'] ?? '');
 ?>
 
 <header class="container hero">
   <h1>Commande #<?= (int)$order['id'] ?></h1>
-  <p>Statut : <strong><?= htmlspecialchars($order['status']) ?></strong></p>
+  <p>Statut : <strong><?= htmlspecialchars(statusLabel($rawStatus)) ?></strong></p>
 </header>
 
 <main class="container">
@@ -51,6 +68,12 @@ $lines = $stmt->fetchAll();
       <span>Date : <?= htmlspecialchars($order['created_at']) ?></span>
       <strong>Total : <?= number_format((float)$order['total'], 2) ?> €</strong>
     </div>
+
+    <?php if (strtolower((string)$order['status']) === 'delivered' && !empty($order['delivered_at'])): ?>
+      <div style="margin-top:8px;opacity:.9;">
+        Livrée le : <strong><?= htmlspecialchars($order['delivered_at']) ?></strong>
+      </div>
+    <?php endif; ?>
   </div>
 
   <div class="panel" style="margin-top:14px;">
