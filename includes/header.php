@@ -1,9 +1,9 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-$logged = isset($_SESSION['user']);
+$logged = isset($_SESSION['user']) && is_array($_SESSION['user']);
 $isAdmin = $logged && (($_SESSION['user']['role'] ?? '') === 'admin');
-$fullname = $logged ? ($_SESSION['user']['fullname'] ?? 'Profil') : null;
+$fullname = $logged ? ($_SESSION['user']['fullname'] ?? 'Profil') : '';
 
 $current = $_SERVER['REQUEST_URI'] ?? '';
 
@@ -16,7 +16,7 @@ function navActive(string $path): string {
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title><?= htmlspecialchars($title ?? 'K-Store') ?></title>
+  <title><?= htmlspecialchars($title ?? 'K-Store KR') ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/-e-commerce-dynamique/assets/css/style.css">
 </head>
@@ -24,6 +24,7 @@ function navActive(string $path): string {
 
 <nav class="topbar">
   <div class="container nav-inner">
+
     <a class="brand" href="/-e-commerce-dynamique/public/items.php">K-Store KR</a>
 
     <div class="nav-links">
@@ -37,8 +38,9 @@ function navActive(string $path): string {
       <?php endif; ?>
 
       <?php if ($isAdmin): ?>
-        <a class="<?= navActive('/public/admin_orders.php') ?>" href="/-e-commerce-dynamique/public/admin_orders.php">Admin commandes</a>
+        <a class="<?= navActive('/admin/orders.php') ?>" href="/-e-commerce-dynamique/admin/orders.php">Admin commandes</a>
         <a class="<?= navActive('/admin/items.php') ?>" href="/-e-commerce-dynamique/admin/items.php">Admin stock</a>
+        <a class="<?= navActive('/admin/users.php') ?>" href="/-e-commerce-dynamique/admin/users.php">Utilisateurs</a>
       <?php endif; ?>
 
       <?php if ($logged): ?>
@@ -49,5 +51,6 @@ function navActive(string $path): string {
         <a class="<?= navActive('/public/register.php') ?>" href="/-e-commerce-dynamique/public/register.php">Inscription</a>
       <?php endif; ?>
     </div>
+
   </div>
 </nav>
