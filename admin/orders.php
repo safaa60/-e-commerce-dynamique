@@ -40,7 +40,9 @@ if ($archived === '1') {
 
 $sql = "
   SELECT
-    o.id, o.customer_name, o.customer_email,
+    o.id,
+    o.customer_firstname, o.customer_lastname,
+    o.customer_email,
     o.created_at, o.status, o.total, o.delivered_at, o.is_archived
   FROM orders o
 ";
@@ -110,9 +112,13 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <tbody>
           <?php foreach ($orders as $o): ?>
+            <?php
+              $customerName = trim(($o['customer_firstname'] ?? '') . ' ' . ($o['customer_lastname'] ?? ''));
+              if ($customerName === '') $customerName = '—';
+            ?>
             <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
               <td style="padding:12px 8px;"><strong>#<?= (int)$o['id'] ?></strong></td>
-              <td style="padding:12px 8px;"><?= htmlspecialchars($o['customer_name'] ?: '—') ?></td>
+              <td style="padding:12px 8px;"><?= htmlspecialchars($customerName) ?></td>
               <td style="padding:12px 8px;"><?= htmlspecialchars($o['customer_email'] ?: '—') ?></td>
               <td style="padding:12px 8px;"><?= htmlspecialchars($o['created_at']) ?></td>
               <td style="padding:12px 8px;"><strong><?= htmlspecialchars(statusLabel((string)$o['status'])) ?></strong></td>
@@ -120,17 +126,10 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
               <td style="padding:12px 8px;"><?= $o['delivered_at'] ? htmlspecialchars($o['delivered_at']) : '—' ?></td>
 
               <td style="padding:12px 8px;text-align:right;white-space:nowrap;">
-                <!-- ✅ IMPORTANT : liens CORRECTS -->
-                <a class="btn ghost"
-                   href="/-e-commerce-dynamique/admin/order_details.php?id=<?= (int)$o['id'] ?>"
-                   style="text-decoration:none;">
-                  Détail
-                </a>
-
                 <a class="btn"
-                   href="/-e-commerce-dynamique/admin/order_edit.php?id=<?= (int)$o['id'] ?>"
+                   href="/-e-commerce-dynamique/admin/order.php?id=<?= (int)$o['id'] ?>"
                    style="text-decoration:none;">
-                  Modifier
+                  Ouvrir
                 </a>
               </td>
             </tr>

@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $pdo->commit();
       clearCart();
 
-      header("Location: /-e-commerce-dynamique/public/order_success.php?id=".$orderId);
+      header("Location: /-e-commerce-dynamique/public/order.php?id=".$orderId."&success=1");
       exit;
 
     } catch (Exception $e) {
@@ -123,8 +123,8 @@ function field($v){ return htmlspecialchars($v ?? '', ENT_QUOTES); }
 <button class="btn" type="submit">Payer & Valider la commande</button>
 
 <div style="display:flex;gap:10px">
-<a class="btn ghost" href="/-e-commerce-dynamique/public/cart.php">← Retour panier</a>
-<a class="btn ghost" href="/-e-commerce-dynamique/public/my_orders.php">Mes commandes →</a>
+  <a class="btn ghost" href="/-e-commerce-dynamique/public/cart.php">← Retour panier</a>
+  <a class="btn ghost" href="/-e-commerce-dynamique/public/orders.php">Mes commandes →</a>
 </div>
 
 </form>

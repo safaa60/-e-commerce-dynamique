@@ -34,7 +34,7 @@ function navActive(string $path): string {
       <a class="<?= navActive('/public/cart.php') ?>" href="/-e-commerce-dynamique/public/cart.php">Panier</a>
 
       <?php if ($logged): ?>
-        <a class="<?= navActive('/public/my_orders.php') ?>" href="/-e-commerce-dynamique/public/my_orders.php">Mes commandes</a>
+        <a class="<?= navActive('/public/orders.php') ?>" href="/-e-commerce-dynamique/public/orders.php">Mes commandes</a>
       <?php endif; ?>
 
       <?php if ($isAdmin): ?>

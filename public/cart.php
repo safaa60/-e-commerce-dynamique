@@ -151,7 +151,7 @@ $total = getCartTotal($items);
           <button class="btn ghost" type="submit" name="clear" value="1">Vider le panier</button>
 
           <?php if (isset($_SESSION['user'])): ?>
-            <a class="btn ghost" href="/-e-commerce-dynamique/public/my_orders.php" style="text-decoration:none;">
+            <a class="btn ghost" href="/-e-commerce-dynamique/public/orders.php" style="text-decoration:none;">
               Mes commandes
             </a>
             <a class="btn" href="/-e-commerce-dynamique/public/checkout.php" style="text-decoration:none;">

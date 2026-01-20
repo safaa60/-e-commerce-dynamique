@@ -113,7 +113,8 @@ require_once __DIR__ . '/../includes/header.php';
             </a>
 
             <?php if (!$isOut): ?>
-              <form method="post" action="/-e-commerce-dynamique/public/cart_add.php" style="margin:0;">
+              <form method="post" action="/-e-commerce-dynamique/public/cart_action.php" style="margin:0;">
+                <input type="hidden" name="action" value="add">
                 <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
                 <input type="hidden" name="qty" value="1">
                 <button class="btn" type="submit">Ajouter</button>

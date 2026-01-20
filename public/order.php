@@ -5,23 +5,33 @@ require_once __DIR__ . '/../includes/auth.php';
 
 requireLogin();
 
-if (!isset($_SESSION['user']) || (($_SESSION['user']['role'] ?? '') !== 'admin')) {
-  header("Location: /-e-commerce-dynamique/public/items.php");
+$title = "Détail commande - K-Store";
+require_once __DIR__ . '/../includes/header.php';
+
+$userId  = (int)($_SESSION['user']['id'] ?? 0);
+$orderId = (int)($_GET['id'] ?? 0);
+$success = (int)($_GET['success'] ?? 0) === 1;
+
+if ($orderId <= 0) {
+  echo "<main class='container'><div class='panel'><h2>Commande introuvable</h2></div></main>";
+  require_once __DIR__ . '/../includes/footer.php';
   exit;
 }
 
-$orderId = (int)($_GET['id'] ?? 0);
-if ($orderId <= 0) die("Commande introuvable");
-
 $stmt = $pdo->prepare("
-  SELECT *
+  SELECT id, user_id, status, total, created_at, delivered_at, customer_address
   FROM orders
-  WHERE id = ?
+  WHERE id = ? AND user_id = ?
   LIMIT 1
 ");
-$stmt->execute([$orderId]);
+$stmt->execute([$orderId, $userId]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$order) die("Commande introuvable");
+
+if (!$order) {
+  echo "<main class='container'><div class='panel'><h2>Accès refusé</h2><p>Cette commande ne t’appartient pas.</p></div></main>";
+  require_once __DIR__ . '/../includes/footer.php';
+  exit;
+}
 
 $stmt = $pdo->prepare("
   SELECT oi.quantity, oi.unit_price, oi.line_total, i.name
@@ -33,25 +43,50 @@ $stmt = $pdo->prepare("
 $stmt->execute([$orderId]);
 $lines = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$title = "Détail commande #".$orderId;
-require_once __DIR__ . '/../includes/header.php';
+function statusLabel($s){
+  $s = strtolower(trim((string)$s));
+  return match($s){
+    'pending'   => 'En attente',
+    'paid'      => 'Payée',
+    'shipped'   => 'Expédiée',
+    'delivered' => 'Livrée',
+    'cancelled' => 'Annulée',
+    default     => ($s === '' ? 'Payée' : $s)
+  };
+}
 ?>
 
 <header class="container hero">
   <h1>Commande #<?= (int)$order['id'] ?></h1>
-  <p>
-    Client : <strong><?= htmlspecialchars($order['customer_name'] ?? '—') ?></strong>
-    • <?= htmlspecialchars($order['customer_email'] ?? '—') ?>
-    • Statut : <strong><?= htmlspecialchars($order['status'] ?? '') ?></strong>
-  </p>
+  <p>Statut : <strong><?= htmlspecialchars(statusLabel((string)$order['status'])) ?></strong></p>
 </header>
 
 <main class="container">
+
+  <?php if ($success): ?>
+    <div class="panel" style="margin-bottom:14px;">
+      <h2>Merci ! 🎉</h2>
+      <p>Ta commande est confirmée.</p>
+    </div>
+  <?php endif; ?>
+
   <div class="panel">
     <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
       <span>Date : <?= htmlspecialchars($order['created_at']) ?></span>
       <strong>Total : <?= number_format((float)$order['total'], 2) ?> €</strong>
     </div>
+
+    <?php if (!empty($order['customer_address'])): ?>
+      <div style="margin-top:8px;opacity:.9;">
+        Livraison : <strong><?= htmlspecialchars($order['customer_address']) ?></strong>
+      </div>
+    <?php endif; ?>
+
+    <?php if (strtolower((string)$order['status']) === 'delivered' && !empty($order['delivered_at'])): ?>
+      <div style="margin-top:8px;opacity:.9;">
+        Livrée le : <strong><?= htmlspecialchars($order['delivered_at']) ?></strong>
+      </div>
+    <?php endif; ?>
   </div>
 
   <div class="panel" style="margin-top:14px;">
@@ -80,11 +115,11 @@ require_once __DIR__ . '/../includes/header.php';
       </table>
     </div>
 
-    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-      <a class="btn ghost" href="/-e-commerce-dynamique/public/admin_orders.php" style="text-decoration:none;">← Retour liste</a>
-      <a class="btn" href="/-e-commerce-dynamique/public/admin_order_edit.php?id=<?= (int)$orderId ?>" style="text-decoration:none;">Modifier statut</a>
+    <div style="margin-top:14px;">
+      <a class="btn ghost" href="/-e-commerce-dynamique/public/orders.php" style="text-decoration:none;">← Retour à mes commandes</a>
     </div>
   </div>
+
 </main>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -78,7 +78,7 @@ function statusClass($s){
             <?php endif; ?>
 
             <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-              <a class="btn ghost" href="/-e-commerce-dynamique/public/order_details.php?id=<?= (int)$o['id'] ?>" style="text-decoration:none;">
+              <a class="btn ghost" href="/-e-commerce-dynamique/public/order.php?id=<?= (int)$o['id'] ?>" style="text-decoration:none;">
                 Voir détail →
               </a>
             </div>

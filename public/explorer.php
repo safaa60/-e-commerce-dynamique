@@ -159,7 +159,8 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <a class="btn ghost" href="item.php?id=<?= (int)$item['id'] ?>" style="text-decoration:none;">Voir</a>
 
         <?php if (!$out): ?>
-          <form method="post" action="/-e-commerce-dynamique/public/cart_add.php" style="margin:0;">
+          <form method="post" action="/-e-commerce-dynamique/public/cart_action.php" style="margin:0;">
+            <input type="hidden" name="action" value="add">
             <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
             <input type="hidden" name="qty" value="1">
             <button class="btn" type="submit">Ajouter</button>
