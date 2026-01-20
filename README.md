@@ -1,103 +1,119 @@
-# K-Store KR — E-commerce dynamique (PHP / MySQL/ HTML)
+# 🛒 K-Store KR — E-commerce dynamique (PHP / MySQL)
 
-K-Store est un site e-commerce dynamique inspiré de l’univers coréen  
-Le projet permet de consulter un catalogue, filtrer/rechercher les produits, ajouter au panier, gérer un compte utilisateur et (si admin) administrer produits/commandes.
+K-Store KR est un site e-commerce dynamique inspiré de l’univers coréen.  
+Il permet de consulter un catalogue, rechercher et filtrer des produits, gérer un panier, passer commande et administrer le site via un back-office.
 
 ---
 
 ## ✨ Fonctionnalités
 
 ### Côté client
-- Catalogue de produits (avec catégories)
-- Page produit détaillée (image, description, stock)
-- Explorer : recherche + filtres (catégorie, prix min/max, tri, stock)
-- Panier : ajout / suppression / mise à jour des quantités
+- Catalogue de produits avec catégories
+- Fiche produit détaillée (image, description, stock, variantes)
+- Page Explorer : recherche + filtres (catégorie, prix min/max, tri, stock)
+- Panier : ajout, suppression, mise à jour des quantités
 - Authentification : inscription / connexion / déconnexion
-- Mes commandes (si connecté)
+- Historique des commandes + détail d’une commande
 
-### Côté admin (si rôle = `admin`)
-- Gestion du stock / produits
-- Gestion des commandes
+### Côté admin (rôle = `admin`)
+- Gestion des produits / stock (CRUD)
+- Gestion des commandes (statut, archivage)
+- Gestion des utilisateurs
 
 ---
 
-## 🧰 Technologies
-- **PHP** (backend)
-- **MySQL / MariaDB** (base de données)
-- **HTML / CSS** (interface)
-- **XAMPP** (Apache + MySQL)
+## 🧰 Technologies utilisées
+
+- PHP 8+
+- MySQL / MariaDB
+- PDO
+- HTML / CSS
+- XAMPP (Apache + MySQL)
 
 ---
 
 ## 📁 Structure du projet
 
-Exemple de structure :
-
 -e-commerce-dynamique/
-├─ admin/ # pages admin (stock, commandes)
+├─ admin/ # back-office (produits, commandes, utilisateurs)
+├─ public/ # pages client (catalogue, panier, commandes…)
+├─ includes/ # header, footer, auth, fonctions panier
+├─ config/ # connexion PDO (db.php)
 ├─ assets/
-│ ├─ css/ # styles (style.css)
-│ └─ img/ # images produits + placeholder
-├─ config/
-│ └─ db.php # connexion PDO à la BDD
-├─ includes/
-│ ├─ header.php # barre de navigation / layout
-│ ├─ footer.php # pied de page
-│ └─ functions.php # fonctions panier + utilitaires
-└─ public/
-├─ items.php # catalogue
-├─ explorer.php # recherche + filtres
-├─ item.php # fiche produit
-├─ cart.php # panier
-├─ login.php / register.php / logout.php
-├─ my_orders.php
-└─ about.php # page "Qui sommes-nous"
+│ ├─ css/ # styles
+│ └─ img/ # images produits
+└─ README.md
 
----
 
 ## ✅ Prérequis
+
 - XAMPP installé (Apache + MySQL)
 - PHP 8.x recommandé
-- Un navigateur web (Chrome / Firefox)
+- Navigateur web moderne
 
----
 
-## 🚀 Installation et lancement avec XAMPP
+## 🚀 Installation (XAMPP)
 
-### 1) Mettre le projet dans `htdocs`
-Copie le dossier du projet dans :
+### 1) Copier le projet dans `htdocs`
 
-- Windows : `C:\xampp\htdocs\`
-- Mac : `/Applications/XAMPP/htdocs/`
+Windows :
+C:\xampp\htdocs-e-commerce-dynamique\
 
-Tu dois obtenir par exemple :
 
-`C:\xampp\htdocs\-e-commerce-dynamique\`
+Mac :
+/Applications/XAMPP/htdocs/-e-commerce-dynamique/
 
----
 
-### 2) Démarrer Apache et MySQL
-Ouvre **XAMPP Control Panel** puis clique sur :
-- ✅ Start **Apache**
-- ✅ Start **MySQL**
+### 2) Démarrer les services
 
----
+Dans XAMPP Control Panel :
+- Start **Apache**
+- Start **MySQL**
+
 
 ### 3) Créer la base de données
-Va sur phpMyAdmin :
 
-`http://localhost/phpmyadmin`
+Ouvre :
 
-1. Crée une base (ex : `kstore`)
-2. Importe ton fichier SQL (si tu en as un) ou crée les tables nécessaires.
+http://localhost/phpmyadmin
 
-### 4) Comment lancer 
-aller dans le navigateur et mettre :
-Catalogue : http://localhost/-e-commerce-dynamique/public/items.php
+markdown
+Copier le code
+
+- Crée une base (ex: `kstore`)
+- Importe le fichier SQL du projet (ou crée les tables)
+
+Configure ensuite la connexion dans :
+
+config/db.php
 
 
-👤 Comptes & rôles
+### 4) Lancer le site
 
-Un utilisateur connecté est stocké en session $_SESSION['user'].
+Catalogue :
 
-Un admin est un utilisateur dont $_SESSION['user']['role'] === 'admin'.
+http://localhost/-e-commerce-dynamique/public/items.php
+
+## 👤 Comptes & rôles
+
+- Un utilisateur connecté est stocké dans :
+
+```php
+$_SESSION['user']
+Un administrateur est défini par :
+
+
+$_SESSION['user']['role'] === 'admin'
+
+📌 Notes techniques
+Requêtes sécurisées avec PDO (prepared statements)
+
+Transactions utilisées pour la création de commandes
+
+Gestion du stock automatique
+
+Architecture volontairement simple (sans framework)
+
+👨‍💻 Auteur
+Projet réalisé par [zemmar safaa]
+

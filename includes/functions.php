@@ -56,7 +56,7 @@ function getSizeCode(PDO $pdo, int $sizeId): ?string {
 
 /**
  * Ajout panier (avec taille optionnelle)
- * ✅ IMPORTANT : si le produit a des tailles et que sizeId n'est pas fourni,
+ * IMPORTANT : si le produit a des tailles et que sizeId n'est pas fourni,
  * on choisit automatiquement la 1ère taille dispo.
  * Retourne un message ou null si OK.
  */
@@ -70,12 +70,11 @@ function addToCart(PDO $pdo, int $itemId, int $qty = 1, ?int $sizeId = null): ?s
   $infoMsg = null;
 
   if (itemHasSizes($pdo, $itemId)) {
-    // ✅ auto-size si rien fourni
+    // auto-size si rien fourni
     if (!$sizeId) {
       $sizeId = getDefaultSizeIdForItem($pdo, $itemId);
       if (!$sizeId) return "Tailles indisponibles pour ce produit.";
       $code = getSizeCode($pdo, $sizeId);
-      // tu peux mettre $infoMsg = null; si tu ne veux aucun message
       $infoMsg = $code ? "Taille sélectionnée automatiquement : $code." : "Taille sélectionnée automatiquement.";
     } else {
       if (!sizeIsValidForItem($pdo, $itemId, $sizeId)) return "Taille / pointure invalide.";
