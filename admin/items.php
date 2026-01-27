@@ -53,7 +53,6 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <header class="container hero">
   <h1>Admin • Articles</h1>
-  <p>Stock + Modifier article + (Tailles uniquement si nécessaire) + Supprimer</p>
 </header>
 
 <main class="container">
