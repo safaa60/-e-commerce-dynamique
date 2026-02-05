@@ -1,17 +1,22 @@
 <?php
+// gere stock coté admin
 session_start();
 
-require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/admin_guard.php';
+require_once __DIR__ . '/../config/db.php'; // demarer la session
+require_once __DIR__ . '/../includes/admin_guard.php'; // connexion a la bd
 
-requireAdmin();
+requireAdmin(); // bloque la connexion si on est pas admin 
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id <= 0) {
   header("Location: /-e-commerce-dynamique/admin/items.php");
   exit;
 }
+// recupere l id du produit depuis l url  redirige si invalide 
 
+
+
+// Message de succès (au départ vide).
 $msg = null;
 $err = null;
 
@@ -19,11 +24,15 @@ $stmt = $pdo->prepare("SELECT i.*, c.name AS category FROM items i LEFT JOIN cat
 $stmt->execute([$id]);
 $item = $stmt->fetch();
 
+
 if (!$item) {
   header("Location: /-e-commerce-dynamique/admin/items.php");
   exit;
 }
 
+
+
+// Charger le produit depuis la bd
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $stock = isset($_POST['stock']) ? (int)$_POST['stock'] : 0;
   if ($stock < 0) $stock = 0;
@@ -34,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($_POST['set_out'])) $stock = 0;
   if (isset($_POST['add_10'])) $stock += 10;
   if (isset($_POST['add_50'])) $stock += 50;
+
+
 
   try {
     $u = $pdo->prepare("UPDATE items SET stock=?, restock_at=? WHERE id=?");

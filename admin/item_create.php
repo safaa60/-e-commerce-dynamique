@@ -1,11 +1,12 @@
 <?php
+//cree un nouvelle objet du coter admin
 session_start();
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_guard.php';
 
 requireAdmin();
-
+// Message de succès (au départ vide).
 $msg = null;
 $err = null;
 

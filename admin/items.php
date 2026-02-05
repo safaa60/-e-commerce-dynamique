@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
   }
 }
 
-/* ✅ Liste articles + info "a des tailles ?" */
+/* Liste articles" */
 $stmt = $pdo->query("
   SELECT
     i.id, i.name, i.price, i.stock, i.is_active, i.image,

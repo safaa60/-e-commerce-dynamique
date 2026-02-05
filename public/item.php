@@ -1,4 +1,5 @@
 <?php
+// page avec les description 
 session_start();
 require_once __DIR__ . '/../config/db.php';
 

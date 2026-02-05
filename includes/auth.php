@@ -9,3 +9,5 @@ function requireLogin() {
 function isAdmin(): bool {
   return isset($_SESSION['user']) && ($_SESSION['user']['role'] ?? '') === 'admin';
 }
+
+// Vérifie si un utilisateur est connecté via la session Sinon, redirige vers la page de connexion

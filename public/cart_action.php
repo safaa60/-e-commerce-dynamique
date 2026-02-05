@@ -1,15 +1,16 @@
 <?php
+// gere aussi le panier 
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-$action = $_POST['action'] ?? '';        // add | plus | minus | remove
+$action = $_POST['action'] ?? '';        //action → type d’action demandée
 $id     = (int)($_POST['id'] ?? 0);      // item id
 $qty    = max(1, (int)($_POST['qty'] ?? 1));
 
 $sizeId = (isset($_POST['size_id']) && $_POST['size_id'] !== '') ? (int)$_POST['size_id'] : null;
 
-$key = (string)($_POST['key'] ?? '');    // ex: "12:5"
+$key = (string)($_POST['key'] ?? '');    
 
 initCart();
 
@@ -53,7 +54,7 @@ switch ($action) {
     header("Location: cart.php"); exit;
   }
 
-  case 'remove': {
+  case 'remove': { 
     if ($key !== '') removeFromCart($key);
     header("Location: cart.php"); exit;
   }

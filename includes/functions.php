@@ -2,16 +2,17 @@
 
 function initCart(): void {
   if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
-    $_SESSION['cart'] = []; // key => ['item_id'=>..,'size_id'=>..,'qty'=>..]
+    $_SESSION['cart'] = []; 
   }
 }
+// Crée un panier vide si la session n’en contient pas encore  Chaque ligne : ['item_id'=>..,'size_id'=>..,'qty'=>..]
 
-/** clé unique : "12" ou "12:5" (5 = size_id) */
 function cartKey(int $itemId, ?int $sizeId): string {
   return $sizeId ? ($itemId . ':' . $sizeId) : (string)$itemId;
 }
 
-/** stock dispo */
+// identifie une ligen du panier 
+
 function getItemStock(PDO $pdo, int $itemId): int {
   $stmt = $pdo->prepare("SELECT stock FROM items WHERE id = ? AND is_active = 1");
   $stmt->execute([$itemId]);
