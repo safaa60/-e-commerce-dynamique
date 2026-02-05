@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 05 fév. 2026 à 09:03
+-- Généré le : jeu. 05 fév. 2026 à 09:07
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.0.30
 
@@ -20,6 +20,50 @@ SET time_zone = "+00:00";
 --
 -- Base de données : `kstore`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `categories`
+--
+
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(80) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`) VALUES
+(6, 'Accessoires'),
+(3, 'Boissons'),
+(8, 'Épicerie'),
+(7, 'Goodies'),
+(4, 'K-Beauty'),
+(5, 'K-Pop'),
+(9, 'Maison & Lifestyle'),
+(1, 'Ramen'),
+(2, 'Snacks');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `invoices`
+--
+
+CREATE TABLE `invoices` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `transaction_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `amount` decimal(10,2) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `city` varchar(120) NOT NULL,
+  `postal_code` varchar(20) NOT NULL,
+  `country` varchar(80) NOT NULL DEFAULT 'France'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -92,9 +136,203 @@ INSERT INTO `items` (`id`, `category_id`, `name`, `description`, `price`, `stock
 (47, 9, 'Chaussettes K-style', 'Chaussettes style coréen au design moderne et tendance, parfaites pour compléter un outfit streetwear ou casual. Confortables et respirantes, elles sont idéales pour une utilisation quotidienne, que ce soit en ville, en cours ou à la maison. Leur look K-fashion apporte une touche unique et originale à ton style.', 6.90, 29, NULL, 'Chaussettes-K-style.jpg', 1, '2026-01-12 17:40:22'),
 (48, 9, 'Carnet K-Stationery', 'Carnet inspiré de la papeterie coréenne, parfait pour prendre des notes, écrire un journal personnel ou organiser ses journées. Son design doux et esthétique en fait un accessoire idéal pour les étudiants, les créatifs ou les amateurs de K-culture. Léger et pratique, il se glisse facilement dans un sac.', 7.50, 0, '2026-02-08', 'Carnet-K-Stationery.jpg', 1, '2026-01-12 17:40:22');
 
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `item_sizes`
+--
+
+CREATE TABLE `item_sizes` (
+  `item_id` int(11) NOT NULL,
+  `size_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `item_sizes`
+--
+
+INSERT INTO `item_sizes` (`item_id`, `size_id`) VALUES
+(47, 6),
+(47, 7),
+(47, 8),
+(47, 9),
+(47, 10),
+(47, 11),
+(47, 12),
+(47, 13),
+(47, 14);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `customer_firstname` varchar(100) DEFAULT NULL,
+  `customer_lastname` varchar(100) DEFAULT NULL,
+  `customer_name` varchar(120) NOT NULL,
+  `customer_email` varchar(190) NOT NULL,
+  `customer_phone` varchar(30) DEFAULT NULL,
+  `customer_address` varchar(255) NOT NULL,
+  `customer_postal` varchar(20) DEFAULT NULL,
+  `customer_postal_code` varchar(20) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'paid',
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `delivered_at` datetime DEFAULT NULL,
+  `is_archived` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `customer_firstname`, `customer_lastname`, `customer_name`, `customer_email`, `customer_phone`, `customer_address`, `customer_postal`, `customer_postal_code`, `status`, `total`, `created_at`, `delivered_at`, `is_archived`) VALUES
+(5, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue Albert camus', NULL, NULL, 'paid', 63.80, '2026-01-12 13:34:51', NULL, 0),
+(6, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue Albert camus', NULL, NULL, 'shipped', 4.90, '2026-01-12 13:35:08', NULL, 0),
+(7, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, 'tyiikkkj', NULL, NULL, 'paid', 4.90, '2026-01-12 13:47:54', NULL, 1),
+(8, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue loo', NULL, NULL, 'cancelled', 4.90, '2026-01-12 13:48:45', NULL, 0),
+(9, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue albert camus', NULL, NULL, 'shipped', 132.30, '2026-01-12 13:56:05', NULL, 0),
+(10, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '10 rue paul valerie', NULL, NULL, 'paid', 4.90, '2026-01-12 14:39:42', NULL, 0),
+(11, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue albert camus', NULL, NULL, 'paid', 9.80, '2026-01-12 18:29:25', NULL, 0),
+(12, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue albert camus', NULL, NULL, 'paid', 6.90, '2026-01-13 09:27:52', NULL, 0),
+(13, NULL, NULL, NULL, 'Safaa Zemmar', 'safouzemmar@gmail.com', NULL, '6 rue albert camus', NULL, NULL, 'paid', 5.90, '2026-01-13 12:17:32', '2026-01-14 12:04:44', 0),
+(14, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '6 rue albert camus', NULL, NULL, 'delivered', 11.50, '2026-01-14 10:38:33', '2026-01-14 12:02:35', 0),
+(15, 5, NULL, NULL, 'Safaa Zemmar', 'sef54094zemmar@gmail.com', NULL, '46 rue dupont', NULL, NULL, 'paid', 11.50, '2026-01-15 09:09:37', NULL, 0),
+(16, 5, NULL, NULL, 'Safaa Zemmar', 'sef54094zemmar@gmail.com', NULL, '6 rue rdr', NULL, NULL, 'delivered', 5.90, '2026-01-15 09:11:10', '2026-01-15 09:36:30', 0),
+(17, 2, NULL, NULL, 'Safaa Zemmar', 'safaazemmar@gmail.com', NULL, '45  rue de la paix', NULL, NULL, 'paid', 6.90, '2026-01-15 09:38:36', NULL, 0),
+(18, 2, 'Safaa', 'Zemmar', '', 'safaazemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'paid', 5.90, '2026-01-15 09:49:18', NULL, 0),
+(19, 2, 'Safaa', 'Zemmar', '', 'safaazemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'cancelled', 11.50, '2026-01-15 09:49:34', NULL, 0),
+(20, 6, 'Safaa', 'Zemmar', '', 'safouzemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'paid', 6.90, '2026-01-16 20:15:15', NULL, 0),
+(21, 2, 'Safaa', 'Zemmar', '', 'safaazemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'paid', 3.50, '2026-01-16 20:24:56', NULL, 0),
+(22, 2, 'Safaa', 'Zemmar', '', 'safaazemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'delivered', 18.40, '2026-01-20 11:21:55', '2026-01-20 11:22:19', 0),
+(23, 2, 'Safaa', 'Zemmar', '', 'safaazemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'paid', 22.80, '2026-01-23 10:15:38', NULL, 0),
+(24, 6, 'Safaa', 'Zemmar', '', 'safouzemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'delivered', 6.90, '2026-01-28 00:12:23', '2026-02-04 22:37:51', 0),
+(25, 6, 'Safaa', 'Zemmar', '', 'safouzemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'paid', 6.90, '2026-02-04 22:38:49', NULL, 1),
+(26, 6, 'Safaa', 'Zemmar', '', 'safouzemmar@gmail.com', '0754587377', '6 rue Albert camus', '60100', NULL, 'paid', 38.00, '2026-02-04 23:05:25', NULL, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `unit_price` decimal(10,2) NOT NULL,
+  `line_total` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `item_id`, `quantity`, `unit_price`, `line_total`) VALUES
+(1, 5, 5, 1, 2.20, 2.20),
+(2, 5, 8, 3, 18.90, 56.70),
+(3, 5, 9, 1, 4.90, 4.90),
+(4, 6, 9, 1, 4.90, 4.90),
+(5, 7, 9, 1, 4.90, 4.90),
+(6, 8, 9, 1, 4.90, 4.90),
+(7, 9, 8, 7, 18.90, 132.30),
+(8, 10, 9, 1, 4.90, 4.90),
+(9, 11, 9, 2, 4.90, 9.80),
+(10, 12, 47, 1, 6.90, 6.90),
+(11, 13, 44, 1, 5.90, 5.90),
+(12, 14, 46, 1, 11.50, 11.50),
+(13, 15, 46, 1, 11.50, 11.50),
+(14, 16, 44, 1, 5.90, 5.90),
+(15, 17, 47, 1, 6.90, 6.90),
+(16, 18, 44, 1, 5.90, 5.90),
+(17, 19, 46, 1, 11.50, 11.50),
+(18, 20, 47, 1, 6.90, 6.90),
+(19, 21, 22, 1, 3.50, 3.50),
+(20, 22, 47, 1, 6.90, 6.90),
+(21, 22, 46, 1, 11.50, 11.50),
+(22, 23, 26, 1, 7.90, 7.90),
+(23, 23, 45, 1, 14.90, 14.90),
+(24, 24, 47, 1, 6.90, 6.90),
+(25, 25, 47, 1, 6.90, 6.90),
+(26, 26, 37, 1, 3.50, 3.50),
+(27, 26, 47, 5, 6.90, 34.50);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `sizes`
+--
+
+CREATE TABLE `sizes` (
+  `id` int(11) NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `label` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `sizes`
+--
+
+INSERT INTO `sizes` (`id`, `code`, `label`) VALUES
+(6, '36', '36'),
+(7, '37', '37'),
+(8, '38', '38'),
+(9, '39', '39'),
+(10, '40', '40'),
+(11, '41', '41'),
+(12, '42', '42'),
+(13, '43', '43'),
+(14, '44', '44');
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `fullname` varchar(120) NOT NULL,
+  `email` varchar(180) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `role` enum('user','admin') NOT NULL DEFAULT 'user',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `users`
+--
+
+INSERT INTO `users` (`id`, `fullname`, `email`, `password_hash`, `role`, `created_at`) VALUES
+(1, 'Admin K-Store', 'admin@kstore.local', '$2y$10$abcdefghijklmnopqrstuv', 'admin', '2026-01-12 11:04:32'),
+(2, 'Safaa Zemmar', 'safaazemmar@gmail.com', '$2y$10$YPWPqN4rldb64VJ1cFUMLOHlt0U7BLjgiieY..ekU/lNASVnMtCbm', 'admin', '2026-01-12 12:47:38'),
+(4, 'saf', 'safsaf@gmail.com', '$2y$10$5B/km.Cg7PiV5pVJGHqwV.GAN3zekrj9S395QG..8CGxvmOHN9g/u', 'admin', '2026-01-14 08:39:59'),
+(5, 'Safaa Zemmar', 'sef54094zemmar@gmail.com', '$2y$10$2lr.hl9oks.0bWBgk//7.uRSYbCZQr9RFs5/uH9oSERr5SycnUhBq', 'user', '2026-01-14 08:47:03'),
+(6, 'Saf', 'safouzemmar@gmail.com', '$2y$10$RyeWFxhWVpEzAXZ4pjSbauS8Ysb7yexyWTWUrNEJ1XGILuvHBvlyu', 'user', '2026-01-16 19:14:50');
+
 --
 -- Index pour les tables déchargées
 --
+
+--
+-- Index pour la table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Index pour la table `invoices`
+--
+ALTER TABLE `invoices`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `order_id` (`order_id`),
+  ADD KEY `fk_invoices_user` (`user_id`);
 
 --
 -- Index pour la table `items`
@@ -104,8 +342,55 @@ ALTER TABLE `items`
   ADD KEY `fk_items_category` (`category_id`);
 
 --
+-- Index pour la table `item_sizes`
+--
+ALTER TABLE `item_sizes`
+  ADD PRIMARY KEY (`item_id`,`size_id`),
+  ADD KEY `size_id` (`size_id`);
+
+--
+-- Index pour la table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_orders_user` (`user_id`);
+
+--
+-- Index pour la table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_orderitems_order` (`order_id`),
+  ADD KEY `fk_orderitems_item` (`item_id`);
+
+--
+-- Index pour la table `sizes`
+--
+ALTER TABLE `sizes`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_users_email` (`email`);
+
+--
 -- AUTO_INCREMENT pour les tables déchargées
 --
+
+--
+-- AUTO_INCREMENT pour la table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT pour la table `invoices`
+--
+ALTER TABLE `invoices`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `items`
@@ -114,14 +399,65 @@ ALTER TABLE `items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
+-- AUTO_INCREMENT pour la table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT pour la table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+
+--
+-- AUTO_INCREMENT pour la table `sizes`
+--
+ALTER TABLE `sizes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+
+--
+-- AUTO_INCREMENT pour la table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- Contraintes pour les tables déchargées
 --
+
+--
+-- Contraintes pour la table `invoices`
+--
+ALTER TABLE `invoices`
+  ADD CONSTRAINT `fk_invoices_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_invoices_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `items`
 --
 ALTER TABLE `items`
   ADD CONSTRAINT `fk_items_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Contraintes pour la table `item_sizes`
+--
+ALTER TABLE `item_sizes`
+  ADD CONSTRAINT `item_sizes_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `item_sizes_ibfk_2` FOREIGN KEY (`size_id`) REFERENCES `sizes` (`id`) ON DELETE CASCADE;
+
+--
+-- Contraintes pour la table `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Contraintes pour la table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `fk_orderitems_item` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_orderitems_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
